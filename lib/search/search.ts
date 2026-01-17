@@ -4,5 +4,5 @@ export type SearchResult = {
   date: string | null
   source: 'data.gov' | 'govinfo' | 'census'
   url: string
-  description?: string
+  description?: string | null
 }

@@ -40,6 +40,6 @@ function normalizeDataGovResult(dataset: DataGovDataset): SearchResult {
     date: dataset.metadata_modified || null,
     source: 'data.gov',
     url: dataset.landingPage || `https://catalog.data.gov/dataset/${dataset.title.replace(/\s+/g, '-').toLowerCase()}`,
-    description: dataset.description
+    description: dataset.description || null
   };
 }

@@ -142,6 +142,6 @@ function normalizeCensusResult(dataset: CensusDataset): SearchResult {
     date,
     source: 'census',
     url,
-    description: description || undefined
+    description: description || null
   };
 }

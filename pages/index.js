@@ -48,7 +48,7 @@ const Home = () => {
             {results.map((result, index) => (
               <li key={index} className="result-item">
                 <h3>
-                  <a href={result.url} target="_blank" rel="noopener noreferrer">
+                  <a href={`/dataset/${encodeURIComponent(result.title)}`}>
                     {result.title}
                   </a>
                   <span className="source-badge">{result.source}</span>

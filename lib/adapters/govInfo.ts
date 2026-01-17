@@ -134,6 +134,6 @@ function normalizeGovInfoResult(pkg: GovInfoPackage, collection: string): Search
     date,
     source: 'govinfo',
     url,
-    description: description || undefined
+    description: description || null
   };
 }

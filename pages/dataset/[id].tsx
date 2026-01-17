@@ -7,9 +7,14 @@ import Head from 'next/head'
 // For now, we'll simulate with search results
 async function getDatasetById(id: string): Promise<SearchResult | null> {
   // In a real implementation, this would fetch from a database or API
-  // For demo, we'll search and find by URL or title match
-  const results = await searchAll(decodeURIComponent(id))
-  return results.find(r => r.url === id || r.title === id) || null
+  // For demo, we'll search with first few words of title and find by title match
+  const title = decodeURIComponent(id).trim()
+  const query = title.split(' ').slice(0, 2).join(' ') // Use first 2 words for search
+  const results = await searchAll(query)
+  return results.find(r => 
+    r.title.toLowerCase().includes(title.toLowerCase()) || 
+    title.toLowerCase().includes(r.title.toLowerCase())
+  ) || null
 }
 
 interface DatasetPageProps {
@@ -19,6 +24,11 @@ interface DatasetPageProps {
 export const getServerSideProps: GetServerSideProps<DatasetPageProps> = async ({ params }) => {
   const id = params?.id as string
   const dataset = await getDatasetById(id)
+
+  // Ensure undefined values are converted to null for JSON serialization
+  if (dataset) {
+    dataset.description = dataset.description || null;
+  }
 
   return {
     props: {
@@ -48,11 +58,11 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
         <title>{dataset.title} | eplur</title>
         <meta name="description" content={dataset.description || `Dataset from ${dataset.agency}`} />
         <meta property="og:title" content={dataset.title} />
-        <meta property="og:description" content={dataset.description} />
+        <meta property="og:description" content={dataset.description ?? undefined} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={dataset.title} />
-        <meta name="twitter:description" content={dataset.description} />
+        <meta name="twitter:description" content={dataset.description ?? undefined} />
       </Head>
       <main className="container">
         <article className="dataset-page">
@@ -87,6 +97,9 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
             >
               View on Official Site
             </a>
+            <button className="save-button">
+              Save to Vault
+            </button>
           </section>
         </article>
       </main>
