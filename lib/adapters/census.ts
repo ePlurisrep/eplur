@@ -1,4 +1,4 @@
-import { SearchResult } from '../search/search';
+import { SearchResult } from '@/lib/search/search';
 
 interface CensusDataset {
   dataset: string[];
