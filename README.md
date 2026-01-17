@@ -1,5 +1,30 @@
 # eplur
-Unified US Gov Data Search 
+Unified US Gov Data Search
+
+## Setup
+
+### API Keys
+
+This application requires API keys for government data sources. Create a `.env.local` file in the root directory:
+
+```bash
+# Copy the template
+cp .env.local.example .env.local
+```
+
+Get API keys from:
+
+- **GovInfo API**: Register at https://www.govinfo.gov/developers to get an API key
+- **Data.gov API**: Get from https://api.data.gov/signup/
+- **Census API**: No API key required - uses public dataset catalog
+
+### Environment Variables
+
+```env
+DATA_GOV_API=your_data_gov_api_key
+GOVINFO_API=your_govinfo_api_key
+CENSUS_API=your_census_api_key
+```
 
 ## Next.js Development
 

@@ -1,25 +1,5 @@
-{{
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}  "exclude": ["node_modules"]  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],  },    "incremental": true    "jsx": "preserve",    "isolatedModules": true,    "resolveJsonModule": true,    "moduleResolution": "node",    "module": "esnext",    "esModuleInterop": true,    "noEmit": true,    "forceConsistentCasingInFileNames": true,    "strict": true,    "skipLibCheck": true,    "allowJs": true,    "lib": ["dom", "dom.iterable", "esnext"],    "target": "es2020",  "compilerOptions": {  "compilerOptions": {
+{
+  "compilerOptions": {
     "target": "ES2017",
     "lib": [
       "dom",
@@ -40,7 +20,6 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.mts",
     "**/*.ts",
     "**/*.tsx"
   ],
