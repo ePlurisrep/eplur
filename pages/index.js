@@ -1,13 +1,12 @@
 import { useState } from 'react'
-import type { NextPage } from 'next'
-import type { SearchResult } from '../lib/search/search'
+import { SearchResult } from '../lib/search/search'
 
-const Home: NextPage = () => {
+const Home = () => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
+  const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
 
-  const handleSearch = async (e: React.FormEvent) => {
+  const handleSearch = async (e) => {
     e.preventDefault()
     if (!query.trim()) return
 
