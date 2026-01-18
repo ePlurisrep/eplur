@@ -29,11 +29,11 @@ interface GovInfoCollectionResponse {
 }
 
 // GovInfo API requires an API key - get one at https://www.govinfo.gov/developers
-const GOVINFO_API_KEY = process.env.GOVINFO_API || '';
+const GOVINFO_API_KEY = process.env.GOVINFO_API_KEY || '';
 const GOVINFO_BASE_URL = 'https://api.govinfo.gov';
 
-// Collections to search across
-const COLLECTIONS = ['BILLS', 'REPORT', 'CFR'];
+// Collection to search
+const COLLECTION = 'FR';
 
 export async function searchGovInfo(query: string): Promise<SearchResult[]> {
   if (!GOVINFO_API_KEY) {
@@ -41,43 +41,23 @@ export async function searchGovInfo(query: string): Promise<SearchResult[]> {
     return [];
   }
 
-  const allResults: SearchResult[] = [];
-
-  // Search across all collections in parallel
-  const searchPromises = COLLECTIONS.map(collection =>
-    searchCollection(collection, query)
-  );
-
-  try {
-    const results = await Promise.allSettled(searchPromises);
-
-    results.forEach(result => {
-      if (result.status === 'fulfilled') {
-        allResults.push(...result.value);
-      } else {
-        console.warn('Collection search failed:', result.reason);
-      }
-    });
-  } catch (error) {
-    console.warn('GovInfo search failed:', error);
-  }
-
-  return allResults.slice(0, 20); // Limit to 20 results total
+  return await searchCollection(COLLECTION, query);
 }
 
 async function searchCollection(collection: string, query: string): Promise<SearchResult[]> {
   const url = `${GOVINFO_BASE_URL}/collections/${collection}/search`;
   const params = new URLSearchParams({
+    api_key: GOVINFO_API_KEY,
     query: query,
-    pageSize: '10', // Limit per collection
-    offset: '0',
-    api_key: GOVINFO_API_KEY
+    pageSize: '10',
+    offsetMark: '*'
   });
 
   try {
     const response = await fetch(`${url}?${params}`);
     if (!response.ok) {
-      throw new Error(`GovInfo API error for ${collection}: ${response.status}`);
+      console.warn(`GovInfo ${collection} failed`, await response.text());
+      return [];
     }
 
     const data: GovInfoSearchResponse = await response.json();

@@ -56,7 +56,7 @@ export default function Vault() {
   return (
     <div>
       <Head>
-        <title>Vault | eplur</title>
+        <title>{`Vault | eplur`}</title>
       </Head>
       <main className="container">
         <h1>Your Document Vault</h1>

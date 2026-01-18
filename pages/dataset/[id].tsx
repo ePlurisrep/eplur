@@ -6,15 +6,19 @@ import Head from 'next/head'
 // This would need to be implemented - perhaps a function to get dataset by ID
 // For now, we'll simulate with search results
 async function getDatasetById(id: string): Promise<SearchResult | null> {
-  // In a real implementation, this would fetch from a database or API
-  // For demo, we'll search with first few words of title and find by title match
+  // MVP fix: Do NOT re-query external APIs
+  // Use known metadata or mock for now
   const title = decodeURIComponent(id).trim()
-  const query = title.split(' ').slice(0, 2).join(' ') // Use first 2 words for search
-  const results = await searchAll(query)
-  return results.find(r => 
-    r.title.toLowerCase().includes(title.toLowerCase()) || 
-    title.toLowerCase().includes(r.title.toLowerCase())
-  ) || null
+  
+  // Mock dataset based on title (replace with real persistence later)
+  return {
+    title,
+    agency: 'Government Agency', // Mock
+    date: null, // Mock
+    source: 'govinfo', // Mock
+    url: `https://example.com/${encodeURIComponent(title)}`, // Mock
+    description: `Description for ${title}` // Mock
+  }
 }
 
 interface DatasetPageProps {
@@ -55,8 +59,8 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
   return (
     <div>
       <Head>
-        <title>{dataset.title} | eplur</title>
-        <meta name="description" content={dataset.description || `Dataset from ${dataset.agency}`} />
+        <title>{`${dataset.title} — U.S. Government Dataset`}</title>
+        <meta name="description" content={dataset.description || `Official U.S. government dataset from ${dataset.agency}.`} />
         <meta property="og:title" content={dataset.title} />
         <meta property="og:description" content={dataset.description ?? undefined} />
         <meta property="og:type" content="article" />
@@ -95,7 +99,7 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
               rel="noopener noreferrer"
               className="official-link"
             >
-              View on Official Site
+              🔗 Official Source ({dataset.source})
             </a>
             <button className="save-button">
               Save to Vault
