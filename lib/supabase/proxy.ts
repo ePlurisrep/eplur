@@ -1,10 +1,23 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import type { NextRequest } from 'next/server'
+
+type CookieSet = { name: string; value: string; options?: Record<string, any> }
+
+function serializeCookie(c: CookieSet) {
+  const { name, value, options } = c
+  let str = `${name}=${encodeURIComponent(value)}`
+  if (!options) return str
+  if (options.maxAge != null) str += `; Max-Age=${options.maxAge}`
+  if (options.expires) str += `; Expires=${new Date(options.expires).toUTCString()}`
+  if (options.path) str += `; Path=${options.path}`
+  if (options.httpOnly) str += `; HttpOnly`
+  if (options.secure) str += `; Secure`
+  if (options.sameSite) str += `; SameSite=${options.sameSite}`
+  return str
+}
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
+  const cookiesToSet: CookieSet[] = []
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.
@@ -16,52 +29,33 @@ export async function updateSession(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          supabaseResponse = NextResponse.next({
-            request,
-          })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+        setAll(list: CookieSet[]) {
+          list.forEach((c) => cookiesToSet.push(c))
         },
       },
     }
   )
 
-  // Do not run code between createServerClient and
-  // supabase.auth.getClaims(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
-  // IMPORTANT: If you remove getClaims() and you use server-side rendering
-  // with the Supabase client, your users may be randomly logged out.
   const { data } = await supabase.auth.getClaims()
-
   const user = data?.claims
+
+  // Helper to attach Set-Cookie headers to a Response
+  const makeResponse = (body: BodyInit | null, status = 200, extraHeaders?: HeadersInit) => {
+    const headers = new Headers(extraHeaders)
+    for (const c of cookiesToSet) headers.append('set-cookie', serializeCookie(c))
+    return new Response(body, { status, headers })
+  }
 
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/login') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
-    // no user, potentially respond by redirecting the user to the login page
-    const url = request.nextUrl.clone()
-    url.pathname = '/login'
-    return NextResponse.redirect(url)
+    const loginUrl = new URL('/login', request.nextUrl.origin)
+    return makeResponse(null, 302, { location: loginUrl.toString() })
   }
 
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely!
-
-  return supabaseResponse
+  return makeResponse(JSON.stringify({ ok: true }), 200, { 'content-type': 'application/json' })
 }
 
 export default updateSession

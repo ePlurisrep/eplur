@@ -1,6 +1,5 @@
 import { GetServerSideProps } from 'next'
 import { SearchResult } from '../../lib/search/search'
-import { searchAll } from '../../lib/search/searchAll'
 import Head from 'next/head'
 
 // This would need to be implemented - perhaps a function to get dataset by ID

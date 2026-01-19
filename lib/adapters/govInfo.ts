@@ -1,4 +1,5 @@
 import { SearchResult } from '@/lib/search/search';
+import cache from './cache'
 
 interface GovInfoPackage {
   packageId: string;
@@ -49,24 +50,30 @@ async function searchCollection(collection: string, query: string): Promise<Sear
   const params = new URLSearchParams({
     api_key: GOVINFO_API_KEY,
     query: query,
-    pageSize: '10',
-    offsetMark: '*'
+    pageSize: '10'
   });
 
+  const cacheKey = `govinfo:${collection}:search:${query}`
+  const cached = await cache.getCached(cacheKey)
+  if (cached) return cached
+
   try {
-    const response = await fetch(`${url}?${params}`);
+    const response = await fetch(`${url}?${params}`)
     if (!response.ok) {
-      console.warn(`GovInfo ${collection} failed`, await response.text());
-      return [];
+      console.warn(`GovInfo ${collection} failed`, await response.text())
+      return []
     }
 
-    const data: GovInfoSearchResponse = await response.json();
+    const data: GovInfoSearchResponse = await response.json()
 
     if (!data.packages) {
       return [];
     }
 
-    return data.packages.map(pkg => normalizeGovInfoResult(pkg, collection));
+    const results = data.packages.map(pkg => normalizeGovInfoResult(pkg, collection))
+    // Cache normalized results for 1 hour
+    await cache.setCached(cacheKey, results, 60 * 60)
+    return results
   } catch (error) {
     console.warn(`GovInfo ${collection} search failed:`, error);
     return [];

@@ -23,14 +23,21 @@ export async function searchDataGov(query: string): Promise<SearchResult[]> {
     rows: '20', // Limit results
     start: '0'
   });
+  const cache = await import('./cache')
+  const cacheKey = `datagov:search:${query}`
+  const cached = await cache.getCached(cacheKey)
+  if (cached) return cached
 
-  const response = await fetch(`${baseUrl}?${params}`);
+  const response = await fetch(`${baseUrl}?${params}`)
   if (!response.ok) {
-    throw new Error(`Data.gov API error: ${response.status}`);
+    console.warn(`Data.gov API error: ${response.status}`)
+    return []
   }
 
-  const data: DataGovResponse = await response.json();
-  return data.result.results.map(normalizeDataGovResult);
+  const data: DataGovResponse = await response.json()
+  const results = data.result.results.map(normalizeDataGovResult)
+  await cache.setCached(cacheKey, results, 60 * 60)
+  return results
 }
 
 function normalizeDataGovResult(dataset: DataGovDataset): SearchResult {

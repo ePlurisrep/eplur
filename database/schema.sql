@@ -44,3 +44,68 @@ CREATE POLICY "Users can update own documents" ON documents
 
 CREATE POLICY "Users can delete own documents" ON documents
   FOR DELETE USING (auth.uid() = user_id);
+
+-- Usage limits table
+CREATE TABLE usage (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  graphs_generated INTEGER DEFAULT 0,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_usage_user_id ON usage(user_id);
+
+ALTER TABLE usage ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own usage" ON usage
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own usage" ON usage
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own usage" ON usage
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Billing table to track Stripe subscription status and plan
+CREATE TABLE billing (
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  subscription_id TEXT,
+  status TEXT,
+  plan TEXT,
+  current_period_end TIMESTAMP WITH TIME ZONE,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_billing_user_id ON billing(user_id);
+
+ALTER TABLE billing ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own billing" ON billing
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own billing" ON billing
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own billing" ON billing
+  FOR UPDATE USING (auth.uid() = user_id);
+
+-- Saved graphs for reload and sharing
+CREATE TABLE saved_graphs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT,
+  config JSONB NOT NULL,
+  public BOOLEAN DEFAULT false,
+  share_id UUID UNIQUE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_saved_graphs_user_id ON saved_graphs(user_id);
+
+ALTER TABLE saved_graphs ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage own saved graphs" ON saved_graphs
+  FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Allow public read by share_id
+CREATE POLICY "Public read by share_id" ON saved_graphs
+  FOR SELECT USING (public = true);

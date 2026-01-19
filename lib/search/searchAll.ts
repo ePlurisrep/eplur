@@ -1,21 +1,46 @@
 import { SearchResult } from '@/lib/search/search';
-import { searchDataGov } from '@/lib/adapters/dataGov';
-import { searchGovInfo } from '@/lib/adapters/govInfo';
-import { searchCensus } from '@/lib/adapters/census';
 
-export async function searchAll(query: string): Promise<SearchResult[]> {
+type SearchAllOptions = {
+  cookies?: string | null
+  baseUrl?: string | null
+}
+
+async function fetchProxy(source: string, q: string, options?: SearchAllOptions): Promise<SearchResult[]> {
+  try {
+    const url = `${options?.baseUrl ?? ''}/api/proxy/${source}?q=${encodeURIComponent(q)}`
+    const headers: Record<string, string> = {}
+    if (options?.cookies) headers['cookie'] = options.cookies
+
+    const res = await fetch(url, { headers })
+    if (!res.ok) {
+      console.warn(`${source} proxy returned ${res.status}`)
+      return []
+    }
+    const data = await res.json()
+    // adapters/proxy return an array of SearchResult
+    if (Array.isArray(data)) return data
+    // in case proxy wraps results
+    if (Array.isArray(data?.value)) return data.value
+    return []
+  } catch (err) {
+    console.warn(`${source} proxy fetch failed:`, err)
+    return []
+  }
+}
+
+export async function searchAll(query: string, options?: SearchAllOptions): Promise<SearchResult[]> {
   if (!query || query.trim().length === 0) {
     return [];
   }
 
   const trimmedQuery = query.trim();
 
-  // Call all adapters in parallel
+  // Call server-side proxy endpoints in parallel
   const [dataGovResults, govInfoResults, censusResults] = await Promise.allSettled([
-    searchDataGov(trimmedQuery),
-    searchGovInfo(trimmedQuery),
-    searchCensus(trimmedQuery)
-  ]);
+    fetchProxy('datagov', trimmedQuery, options),
+    fetchProxy('govinfo', trimmedQuery, options),
+    fetchProxy('census', trimmedQuery, options),
+  ])
 
   // Collect successful results, log failures
   const allResults: SearchResult[] = [];

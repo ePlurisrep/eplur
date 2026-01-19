@@ -10,9 +10,9 @@ export const metadata = {
     'Search datasets, regulations, and official U.S. government documents from Data.gov, Census, and GovInfo.',
 }
 
-const Home = () => {
+const Home = ({ initialResults = [] }) => {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState(initialResults)
   const [loading, setLoading] = useState(false)
 
   // Use shared HTML-safe highlighter

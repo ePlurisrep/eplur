@@ -39,12 +39,21 @@ export async function searchCensus(query: string): Promise<SearchResult[]> {
   const baseUrl = 'https://api.census.gov/data.json';
 
   try {
-    const response = await fetch(baseUrl);
-    if (!response.ok) {
-      throw new Error(`Census API error: ${response.status}`);
+    const cache = await import('./cache')
+    const cacheKey = `census:catalog`
+    const cached = await cache.getCached(cacheKey)
+    let data: CensusResponse
+    if (cached) {
+      data = cached
+    } else {
+      const response = await fetch(baseUrl)
+      if (!response.ok) {
+        console.warn(`Census API error: ${response.status}`)
+        return []
+      }
+      data = await response.json()
+      await cache.setCached(cacheKey, data, 60 * 60)
     }
-
-    const data: CensusResponse = await response.json();
 
     // Filter datasets based on query (simple text matching)
     const filteredDatasets = data.dataset.filter(dataset =>
