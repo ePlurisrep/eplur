@@ -67,16 +67,19 @@ serve(async (req) => {
     // Count tokens (simple word count)
     const tokenCount = content.split(/\s+/).length
 
-    // Store extracted text
-    const { error: insertError } = await supabaseClient
+    // Store extracted text (use upsert to clear previous errors and reset retry_count)
+    const { error: upsertError } = await supabaseClient
       .from('document_text')
-      .insert({
+      .upsert({
         document_id: documentId,
         content,
-        token_count: tokenCount
+        token_count: tokenCount,
+        extracted_at: new Date().toISOString(),
+        error_message: null,
+        retry_count: 0,
       })
 
-    if (insertError) {
+    if (upsertError) {
       throw new Error('Failed to store extracted text')
     }
 

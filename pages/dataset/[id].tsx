@@ -61,12 +61,12 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
       <Head>
         <title>{`${dataset.title} — U.S. Government Dataset`}</title>
         <meta name="description" content={dataset.description || `Official U.S. government dataset from ${dataset.agency}.`} />
-        <meta property="og:title" content={dataset.title} />
-        <meta property="og:description" content={dataset.description ?? undefined} />
+        <meta property="og:title" content={`${dataset.title} — U.S. Government Dataset`} />
+        <meta property="og:description" content={dataset.description || `Official U.S. government dataset from ${dataset.agency}.`} />
         <meta property="og:type" content="article" />
         <meta name="twitter:card" content="summary" />
         <meta name="twitter:title" content={dataset.title} />
-        <meta name="twitter:description" content={dataset.description ?? undefined} />
+        <meta name="twitter:description" content={dataset.description || `Official U.S. government dataset from ${dataset.agency}.`} />
       </Head>
       <main className="container">
         <article className="dataset-page">
@@ -99,7 +99,7 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
               rel="noopener noreferrer"
               className="official-link"
             >
-              🔗 Official Source ({dataset.source})
+              🔗 Official Source (gov)
             </a>
             <button className="save-button">
               Save to Vault

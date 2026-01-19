@@ -20,9 +20,18 @@ export async function saveDocument(
     return null
   }
 
+  // Attach current user's id to the document; rely on RLS for extra safety.
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError || !authData?.user) {
+    console.error('No authenticated user; cannot save document')
+    return null
+  }
+
+  const user_id = authData.user.id
+
   const { data, error } = await supabase
     .from('documents')
-    .insert([{ source, metadata }])
+    .insert([{ user_id, source, metadata }])
     .select()
     .single()
 
@@ -34,7 +43,7 @@ export async function saveDocument(
   return data
 }
 
-export async function uploadDocument(file: File): Promise<Document | null> {
+export async function uploadDocument(file: File, title?: string): Promise<Document | null> {
   // Check document count
   const userDocs = await getUserDocuments()
   if (userDocs.length >= 10) {
@@ -47,9 +56,10 @@ export async function uploadDocument(file: File): Promise<Document | null> {
   const fileName = `${Date.now()}.${fileExt}`
   const filePath = `uploads/${fileName}`
 
+  // Upload to supabase storage bucket 'documents'. Bucket should be private.
   const { error: uploadError } = await supabase.storage
     .from('documents')
-    .upload(filePath, file)
+    .upload(filePath, file, { upsert: false, cacheControl: '3600', contentType: file.type })
 
   if (uploadError) {
     console.error('Upload error:', uploadError)
@@ -61,7 +71,9 @@ export async function uploadDocument(file: File): Promise<Document | null> {
     file_path: filePath,
     file_name: file.name,
     file_size: file.size,
-    file_type: file.type
+    file_type: file.type,
+    title: title || null,
+    upload_date: new Date().toISOString(),
   }
 
   const doc = await saveDocument('upload', metadata)
@@ -84,9 +96,16 @@ async function triggerTextExtraction(documentId: string) {
 }
 
 export async function getUserDocuments(): Promise<Document[]> {
+  // Only return documents for the authenticated user
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError || !authData?.user) return []
+
+  const user_id = authData.user.id
+
   const { data, error } = await supabase
     .from('documents')
     .select('*')
+    .eq('user_id', user_id)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -98,10 +117,20 @@ export async function getUserDocuments(): Promise<Document[]> {
 }
 
 export async function deleteDocument(id: string): Promise<boolean> {
+  // Ensure user can only delete their own document
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError || !authData?.user) {
+    console.error('No authenticated user; cannot delete document')
+    return false
+  }
+
+  const user_id = authData.user.id
+
   const { error } = await supabase
     .from('documents')
     .delete()
     .eq('id', id)
+    .eq('user_id', user_id)
 
   if (error) {
     console.error('Error deleting document:', error)

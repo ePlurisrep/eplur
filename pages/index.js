@@ -1,18 +1,21 @@
 import { useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import { SearchResult } from '../lib/search/search'
+import { highlightHtml, highlightText } from '@/lib/highlight'
+
+export const metadata = {
+  title: 'Search U.S. Government Data & Policy',
+  description:
+    'Search datasets, regulations, and official U.S. government documents from Data.gov, Census, and GovInfo.',
+}
 
 const Home = () => {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Function to highlight query matches
-  const highlightText = (text, query) => {
-    if (!query || !text) return text
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-    return text.replace(regex, '<strong>$1</strong>')
-  }
+  // Use shared HTML-safe highlighter
 
   const handleSearch = async (e) => {
     e.preventDefault()
@@ -70,19 +73,26 @@ const Home = () => {
       {results.length > 0 && (
         <div className="results">
           <h2>Results ({results.length})</h2>
-          <ul className="result-list">
+          <div className="result-list">
             {results.map((result, index) => (
-              <li key={index} className="result-item">
-                <h3 className="result-title" dangerouslySetInnerHTML={{ __html: highlightText(result.title, query) }} />
-                <p className="result-agency">{result.agency}</p>
-                <span className="source-badge">{result.source}</span>
-                <p className="result-description" dangerouslySetInnerHTML={{ __html: highlightText(result.description || 'Official government dataset or document.', query) }} />
-                <a href={`/dataset/${encodeURIComponent(result.title)}`} className="view-source-link">
-                  View Source →
-                </a>
-              </li>
+              <Link key={index} href={`/dataset/${encodeURIComponent(result.title)}`} className="result-item-link">
+                <div className="result-item">
+                  <h3 className="result-title">
+                    {highlightText(result.title, query)}
+                  </h3>
+                  <p className="result-agency">{result.agency}</p>
+                  <span className="source-badge" data-source={result.source.toLowerCase().replace('.', '').replace(' ', '')}>{result.source}</span>
+                  <p className="result-description">
+                    {highlightText(
+                      result.description || 'Official government dataset or document.',
+                      query
+                    )}
+                  </p>
+                  <span className="view-source-link">View Source →</span>
+                </div>
+              </Link>
             ))}
-          </ul>
+          </div>
         </div>
       )}
     </main>

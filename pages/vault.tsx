@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { Document } from '../lib/documents'
+import { Document, getUserDocuments, deleteDocument, uploadDocument } from '../lib/documents'
 import Head from 'next/head'
 
 export default function Vault() {
@@ -9,6 +8,8 @@ export default function Vault() {
   const [loading, setLoading] = useState(true)
   const [sourceFilter, setSourceFilter] = useState<'all' | 'gov' | 'upload'>('all')
   const [dateFilter, setDateFilter] = useState('')
+  const [uploadTitle, setUploadTitle] = useState('')
+  const [dragActive, setDragActive] = useState(false)
 
   useEffect(() => {
     fetchDocuments()
@@ -69,6 +70,70 @@ export default function Vault() {
           </div>
         )}
 
+        <div className="upload-section">
+          <label>
+            Title (optional):
+            <input
+              type="text"
+              value={uploadTitle}
+              onChange={(e) => setUploadTitle(e.target.value)}
+              placeholder="Optional title for this document"
+            />
+          </label>
+
+          <div
+            className={`dropzone ${dragActive ? 'active' : ''}`}
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragActive(true)
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault()
+              setDragActive(false)
+            }}
+            onDrop={async (e) => {
+              e.preventDefault()
+              setDragActive(false)
+              const file = e.dataTransfer?.files?.[0]
+              if (!file) return
+              if (isAtLimit) return
+              const allowed = ['application/pdf', 'text/plain']
+              const extAllowed = ['.pdf', '.txt']
+              const lowerName = file.name.toLowerCase()
+              if (!allowed.includes(file.type) && !extAllowed.some(ext => lowerName.endsWith(ext))) {
+                alert('Only PDF and TXT files are allowed')
+                return
+              }
+              // @ts-ignore File from drop
+              const uploaded = await uploadDocument(file, uploadTitle || undefined)
+              if (uploaded) {
+                setDocuments([uploaded, ...documents])
+                setUploadTitle('')
+              }
+            }}
+          >
+            <p>Drag & drop PDF or TXT here, or</p>
+            <label className="file-input-label">
+              <input
+                type="file"
+                accept=".pdf,.txt,application/pdf,text/plain"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0]
+                  if (!file) return
+                  if (isAtLimit) return
+                  const uploaded = await uploadDocument(file, uploadTitle || undefined)
+                  if (uploaded) {
+                    setDocuments([uploaded, ...documents])
+                    setUploadTitle('')
+                  }
+                }}
+                disabled={isAtLimit}
+              />
+              <button disabled={isAtLimit}>Choose file</button>
+            </label>
+          </div>
+        </div>
+
         <div className="filters">
           <label>
             Source:
@@ -109,31 +174,4 @@ export default function Vault() {
   )
 }
 
-// These functions should be imported, but for now inline
-async function getUserDocuments(): Promise<Document[]> {
-  const { data, error } = await supabase
-    .from('documents')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Error fetching documents:', error)
-    return []
-  }
-
-  return data || []
-}
-
-async function deleteDocument(id: string): Promise<boolean> {
-  const { error } = await supabase
-    .from('documents')
-    .delete()
-    .eq('id', id)
-
-  if (error) {
-    console.error('Error deleting document:', error)
-    return false
-  }
-
-  return true
-}
+// Document operations are provided by `lib/documents`

@@ -56,47 +56,87 @@ html, body, #__next {
   padding: 0;
 }
 
+.result-item-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
 .result-item {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
   background-color: #f9f9f9;
+  transition: box-shadow 0.2s ease;
 }
 
-.result-item h3 {
+.result-item-link:hover .result-item {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.result-title {
   margin: 0 0 8px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.result-agency {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 14px;
 }
 
 .source-badge {
-  background-color: #0070f3;
-  color: white;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: bold;
   text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 8px;
 }
 
-.result-item h3 a {
+.source-badge[data-source="datagov"] {
+  background-color: #0070f3;
+  color: white;
+}
+
+.source-badge[data-source="govinfo"] {
+  background-color: #28a745;
+  color: white;
+}
+
+.source-badge[data-source="census"] {
+  background-color: #fd7e14;
+  color: white;
+}
+
+.result-description {
+  margin: 8px 0 12px 0;
+  color: #333;
+  font-size: 14px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.view-source-link {
   color: #0070f3;
   text-decoration: none;
-}
-
-.result-item h3 a:hover {
-  text-decoration: underline;
-}
-
-.agency, .source, .date {
-  margin: 4px 0;
-  color: #666;
+  font-weight: 500;
   font-size: 14px;
 }
 
-.description {
-  margin: 8px 0 0 0;
-  color: #333;
+.view-source-link:hover {
+  text-decoration: underline;
+}
+
+/* Highlight mark styling for query matches */
+mark {
+  background-color: #fff3a0;
+  padding: 0 2px;
 }
