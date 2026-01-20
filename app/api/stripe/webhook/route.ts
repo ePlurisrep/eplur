@@ -2,12 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createServerClient } from '@supabase/ssr'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2022-11-15' })
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY
 
 export async function POST(req: NextRequest) {
+  if (!STRIPE_SECRET_KEY) {
+    console.warn('Stripe disabled: missing STRIPE_SECRET_KEY')
+    return NextResponse.json({ ok: true })
+  }
+
   const body = await req.text()
   const sig = req.headers.get('stripe-signature') || ''
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || ''
+
+  // Lazy-init Stripe to avoid constructing at module-import time (build step)
+  let stripe: Stripe
+  try {
+    stripe = new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2022-11-15' } as any)
+  } catch (err: any) {
+    console.error('Stripe init error:', err)
+    return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+  }
 
   let event: Stripe.Event
   try {
@@ -24,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const status = subscription.status
     const plan = subscription.items.data[0]?.price?.nickname || subscription.items.data[0]?.price?.id || null
-    const currentPeriodEnd = subscription.current_period_end ? new Date(subscription.current_period_end * 1000).toISOString() : null
+    const currentPeriodEnd = (subscription as any).current_period_end ? new Date((subscription as any).current_period_end * 1000).toISOString() : null
 
     const { data } = await supabase.from('billing').select('user_id').eq('user_id', userId).single()
     if (data) {
@@ -47,7 +61,7 @@ export async function POST(req: NextRequest) {
       }
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice
-        const subscriptionId = invoice.subscription as string
+        const subscriptionId = (invoice as any).subscription as string
         // Optionally update billing status via retrieving subscription
         const subscription = await stripe.subscriptions.retrieve(subscriptionId)
         const userId = subscription.metadata?.supabase_user_id

@@ -27,10 +27,16 @@ export async function searchDataGov(query: string): Promise<SearchResult[]> {
   const cacheKey = `datagov:search:${query}`
   const cached = await cache.getCached(cacheKey)
   if (cached) return cached
+  const apiKey = process.env.DATAGOV_API_KEY || process.env.NEXT_PUBLIC_DATAGOV_API_KEY || null
 
-  const response = await fetch(`${baseUrl}?${params}`)
-  if (!response.ok) {
-    console.warn(`Data.gov API error: ${response.status}`)
+  if (!apiKey) {
+    console.info('No DATAGOV_API_KEY configured; using public Data.gov API endpoint')
+  }
+
+  const url = `${baseUrl}?${params}`
+  const response = await fetchWithRetry(url, apiKey)
+  if (!response || !response.ok) {
+    console.warn(`Data.gov API error: ${response?.status ?? 'no-response'}`)
     return []
   }
 
@@ -49,4 +55,30 @@ function normalizeDataGovResult(dataset: DataGovDataset): SearchResult {
     url: dataset.landingPage || `https://catalog.data.gov/dataset/${dataset.title.replace(/\s+/g, '-').toLowerCase()}`,
     description: dataset.description || null
   };
+}
+
+async function fetchWithRetry(url: string, apiKey: string | null, retries = 2, timeoutMs = 10000): Promise<Response> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const controller = new AbortController()
+      const id = setTimeout(() => controller.abort(), timeoutMs)
+      const headers: Record<string, string> = {}
+      if (apiKey) {
+        headers['X-API-Key'] = apiKey
+      }
+
+      const res = await fetch(url, { headers, signal: controller.signal })
+      clearTimeout(id)
+      if (!res.ok && attempt < retries) {
+        await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
+        continue
+      }
+      return res
+    } catch (err) {
+      if (attempt === retries) throw err
+      await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
+    }
+  }
+  // Should never reach here, but satisfy return type
+  throw new Error('Failed to fetch after retries')
 }

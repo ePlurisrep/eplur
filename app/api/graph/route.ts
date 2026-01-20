@@ -14,7 +14,7 @@ function createSupabaseForRequest(request: NextRequest, supabaseResponseRef: { r
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponseRef.res = NextResponse.next()
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponseRef.res.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value }) => supabaseResponseRef.res.cookies.set(name, value))
         },
       },
     }
@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
     const user = userData?.user
     if (!user) {
       const res = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-      res.cookies.setAll(supabaseResponse.cookies.getAll())
+      for (const cookie of supabaseResponse.cookies.getAll()) {
+        res.cookies.set(cookie.name, cookie.value)
+      }
       return res
     }
 
@@ -48,21 +50,29 @@ export async function POST(request: NextRequest) {
 
     // Check usage only for non-subscribers
     const FREE_LIMIT = 5
+    let usageRows: any = null
+    let usageError: any = null
+    let graphsGenerated = 0
     if (!isSubscriber) {
-      const { data: usageRows, error: usageError } = await supabase
+      const usageRes = await supabase
         .from('usage')
         .select('graphs_generated')
         .eq('user_id', user.id)
         .single()
 
+      usageRows = usageRes.data
+      usageError = usageRes.error
+
       if (usageError && usageError.code !== 'PGRST116') {
         // ignore missing row
       }
 
-      const graphsGenerated = usageRows?.graphs_generated || 0
+      graphsGenerated = usageRows?.graphs_generated || 0
       if (graphsGenerated >= FREE_LIMIT) {
         const res = NextResponse.json({ error: 'Free graph generation limit reached', upgrade: true }, { status: 403 })
-        res.cookies.setAll(supabaseResponse.cookies.getAll())
+        for (const cookie of supabaseResponse.cookies.getAll()) {
+          res.cookies.set(cookie.name, cookie.value)
+        }
         return res
       }
     }
@@ -83,11 +93,16 @@ export async function POST(request: NextRequest) {
     }
 
     const res = NextResponse.json({ graph })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   } catch (err: any) {
     const res = NextResponse.json({ error: err?.message || 'Unknown error' }, { status: 500 })
-    res.cookies.setAll((supabaseResponse && supabaseResponse.cookies && supabaseResponse.cookies.getAll && supabaseResponse.cookies.getAll()) || [])
+    const _cookies = (supabaseResponse && supabaseResponse.cookies && supabaseResponse.cookies.getAll && supabaseResponse.cookies.getAll()) || []
+    for (const cookie of _cookies) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 }

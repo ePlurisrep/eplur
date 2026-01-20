@@ -1,8 +1,16 @@
+"use client"
+
+export const dynamic = "force-dynamic"
+
 import { useEffect, useRef, useState } from 'react'
 import Head from 'next/head'
 
-export default function ViewSharedGraph({ params }: { params: { shareId: string } }) {
-  const { shareId } = params
+export default function Page({ params }: { params?: { shareId?: string } } = {}) {
+  const shareId = params?.shareId
+  if (!shareId) {
+    return <div>Invalid or missing graph link</div>
+  }
+
   const [graph, setGraph] = useState<any | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const cyRef = useRef<any>(null)
@@ -33,8 +41,8 @@ export default function ViewSharedGraph({ params }: { params: { shareId: string 
         container: containerRef.current,
         elements,
         style: [
-          { selector: 'node', style: { 'label': 'data(label)', 'background-color': '#0070f3', 'color': '#fff', 'text-valign': 'center', 'text-halign': 'center' } },
-          { selector: 'edge', style: { 'width': 2, 'line-color': '#ccc', 'curve-style': 'bezier', 'opacity': 0.8 } },
+          { selector: 'node', style: { label: 'data(label)', 'background-color': '#0070f3', color: '#fff', 'text-valign': 'center', 'text-halign': 'center' } },
+          { selector: 'edge', style: { width: 2, 'line-color': '#ccc', 'curve-style': 'bezier', opacity: 0.8 } },
         ],
         userZoomingEnabled: true,
         userPanningEnabled: true,

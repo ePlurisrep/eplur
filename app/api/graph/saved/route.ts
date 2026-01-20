@@ -13,7 +13,7 @@ function createSupabaseForRequest(request: NextRequest, supabaseResponseRef: { r
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponseRef.res = NextResponse.next()
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponseRef.res.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value }) => supabaseResponseRef.res.cookies.set(name, value))
         },
       },
     }
@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
   const user = userData?.user
   if (!user) {
     const res = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 
@@ -40,12 +42,16 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     const res = NextResponse.json({ error: error.message }, { status: 500 })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 
   const res = NextResponse.json(data || [])
-  res.cookies.setAll(supabaseResponse.cookies.getAll())
+  for (const cookie of supabaseResponse.cookies.getAll()) {
+    res.cookies.set(cookie.name, cookie.value)
+  }
   return res
 }
 
@@ -55,9 +61,11 @@ export async function POST(request: NextRequest) {
 
   const { data: userData } = await supabase.auth.getUser()
   const user = userData?.user
-  if (!user) {
+    if (!user) {
     const res = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 
@@ -66,7 +74,9 @@ export async function POST(request: NextRequest) {
 
   if (!config) {
     const res = NextResponse.json({ error: 'config required' }, { status: 400 })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 
@@ -84,11 +94,15 @@ export async function POST(request: NextRequest) {
 
   if (error) {
     const res = NextResponse.json({ error: error.message }, { status: 500 })
-    res.cookies.setAll(supabaseResponse.cookies.getAll())
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      res.cookies.set(cookie.name, cookie.value)
+    }
     return res
   }
 
   const res = NextResponse.json(data)
-  res.cookies.setAll(supabaseResponse.cookies.getAll())
+  for (const cookie of supabaseResponse.cookies.getAll()) {
+    res.cookies.set(cookie.name, cookie.value)
+  }
   return res
 }

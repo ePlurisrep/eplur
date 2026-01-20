@@ -1,6 +1,8 @@
 import { searchDataGov } from '@/lib/adapters/dataGov'
 
-export async function searchAll(query: string) {
+export async function searchAll(query: string, opts?: { cookies?: string | null; baseUrl?: string | null }) {
+  // `opts` is accepted for future proxying needs (cookies, baseUrl),
+  // adapters currently use their own endpoints.
   const dataGovResults = await searchDataGov(query)
 
   return {

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { SearchResult } from '../lib/search/search'
@@ -15,6 +16,23 @@ const Home = ({ initialResults = [] }) => {
   const [results, setResults] = useState(initialResults)
   const [loading, setLoading] = useState(false)
 
+  // Real data fetch (client-side) — auto-run when ?q= is present
+  const router = useRouter()
+  const searchQuery = Array.isArray(router.query.q) ? router.query.q[0] : router.query.q
+
+  useEffect(() => {
+    if (!searchQuery) return
+    setLoading(true)
+    fetch(`/api/datagov?q=${encodeURIComponent(searchQuery)}`)
+      .then((res) => res.json())
+      .then((data) => setResults(Array.isArray(data) ? data : []))
+      .catch((err) => {
+        console.error('Auto-search failed:', err)
+        setResults([])
+      })
+      .finally(() => setLoading(false))
+  }, [searchQuery])
+
   // Use shared HTML-safe highlighter
 
   const handleSearch = async (e) => {
@@ -23,7 +41,7 @@ const Home = ({ initialResults = [] }) => {
 
     setLoading(true)
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+      const response = await fetch(`/api/datagov?q=${encodeURIComponent(query)}`)
       const data = await response.json()
       setResults(data)
     } catch (error) {
@@ -57,44 +75,44 @@ const Home = ({ initialResults = [] }) => {
         </button>
       </form>
 
-      {!query && results.length === 0 && !loading && (
-        <div className="empty-state">
-          <p>Try searching for topics like:</p>
-          <div className="suggestions">
-            <span>inflation</span>
-            <span>housing</span>
-            <span>healthcare</span>
-            <span>climate</span>
-            <span>education</span>
-          </div>
-        </div>
+      {loading && (
+        <p className="mt-6 text-gray-500">Searching government sources…</p>
       )}
 
-      {results.length > 0 && (
-        <div className="results">
-          <h2>Results ({results.length})</h2>
-          <div className="result-list">
-            {results.map((result, index) => (
-              <Link key={index} href={`/dataset/${encodeURIComponent(result.title)}`} className="result-item-link">
-                <div className="result-item">
-                  <h3 className="result-title">
-                    {highlightText(result.title, query)}
-                  </h3>
-                  <p className="result-agency">{result.agency}</p>
-                  <span className="source-badge" data-source={result.source.toLowerCase().replace('.', '').replace(' ', '')}>{result.source}</span>
-                  <p className="result-description">
-                    {highlightText(
-                      result.description || 'Official government dataset or document.',
-                      query
-                    )}
-                  </p>
-                  <span className="view-source-link">View Source →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
+      {!loading && searchQuery && results.length === 0 && (
+        <p className="mt-6 text-gray-500">
+          No results found for “{searchQuery}”
+        </p>
       )}
+
+      <ul className="mt-6 space-y-4">
+        {results.map((r, i) => (
+          <li
+            key={i}
+            className="border rounded p-4 hover:bg-gray-50"
+          >
+            <a
+              href={r.url}
+              target="_blank"
+              rel="noreferrer"
+              className="text-lg font-semibold text-blue-700"
+            >
+              {r.title}
+            </a>
+
+            <p className="text-sm text-gray-600 mt-1">
+              {r.agency || 'U.S. Government'} · {r.source}
+              {r.date ? ` · ${r.date}` : ''}
+            </p>
+
+            {r.description && (
+              <p className="mt-2 text-gray-700">
+                {r.description}
+              </p>
+            )}
+          </li>
+        ))}
+      </ul>
     </main>
     </div>
   )

@@ -3,8 +3,12 @@ import { searchGovInfo } from '../../../../lib/adapters/govInfo'
 import { searchDataGov } from '../../../../lib/adapters/dataGov'
 import { searchCensus } from '../../../../lib/adapters/census'
 
-export async function GET(request: NextRequest, { params }: { params: { source: string } }) {
-  const source = params.source?.toLowerCase()
+export async function GET(request: NextRequest, context: { params: Promise<{ source: string }> }) {
+  const { source: rawSource } = await context.params
+  const source = rawSource?.toLowerCase()
+  if (!source) {
+    return NextResponse.json({ error: 'Missing source' }, { status: 400 })
+  }
   const url = new URL(request.url)
   const q = url.searchParams.get('q') || url.searchParams.get('query') || ''
 

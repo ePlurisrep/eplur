@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const cookies = request.headers.get('cookie') || null
     const baseUrl = url.origin
 
-    const results = await searchAll(q, { cookies, baseUrl })
+    const results = await searchAll(q)
 
     return NextResponse.json(results)
   } catch (err: any) {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const cookies = request.headers.get('cookie') || null
     const baseUrl = new URL(request.url).origin
 
-    const results = await searchAll(q, { cookies, baseUrl })
+    const results = await searchAll(q)
     return NextResponse.json(results)
   } catch (err: any) {
     console.error('Proxy search POST error:', err)
