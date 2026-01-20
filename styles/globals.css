@@ -1,3 +1,5 @@
+@import "./epluris.css";
+
 html, body, #__next {
   height: 100%;
   margin: 0;
@@ -139,4 +141,18 @@ html, body, #__next {
 mark {
   background-color: #fff3a0;
   padding: 0 2px;
+}
+
+/* Results grid (press-room style) */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+
+.record-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

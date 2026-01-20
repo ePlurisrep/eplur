@@ -19,6 +19,7 @@ function normalizeResult(item: any, idx: number): PublicRecord {
   const title = item.title ?? item.name ?? 'Untitled'
   const id = String(item.id ?? item.identifier ?? item._id ?? `${title}-${idx}`)
 
+  // recordKind: prefer explicit type; otherwise use source hints or fallback to 'Unknown'
   let recordKind = (item.recordKind || item.type || item.kind || '').toString()
   if (!recordKind) {
     if ((item.source || '').toString().toLowerCase().includes('data.gov')) recordKind = 'Dataset'
@@ -46,7 +47,7 @@ function normalizeResult(item: any, idx: number): PublicRecord {
   }
 }
 
-export default function Home() {
+export default function SearchClient() {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[] | null>(null)
   const [loading, setLoading] = useState(false)
@@ -71,27 +72,30 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: 40 }}>
-      <h1>ePluris</h1>
-      <p>Out of many, one.</p>
+    <div style={{ padding: 40 }}>
+      <h1>Search</h1>
+      <p>Search public U.S. government data sources.</p>
 
       <form onSubmit={handleSearch} style={{ marginTop: 16 }}>
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search government data..."
-          style={{ padding: 8, width: 360 }}
-        />
-        <button type="submit" disabled={loading} style={{ marginLeft: 8, padding: '8px 12px' }}>
-          {loading ? 'Searching...' : 'Search'}
-        </button>
+        <div className="epluris-search-label">SEARCH U.S. PUBLIC RECORDS</div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search U.S. public records"
+            className="epluris-search-bar"
+          />
+          <button type="submit" disabled={loading} className="epluris-btn">
+            {loading ? 'SEARCHING...' : 'SEARCH'}
+          </button>
+        </div>
       </form>
 
       <section style={{ marginTop: 24 }}>
         {results === null && <div style={{ color: '#666' }}>No results yet — enter a query above.</div>}
 
         {results !== null && results.length === 0 && (
-          <div style={{ color: '#666' }}>No results for “{query}”. Try a different term.</div>
+          <div style={{ color: '#666' }}>No records matched the query.</div>
         )}
 
         {results !== null && results.length > 0 && (
@@ -100,38 +104,35 @@ export default function Home() {
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, 320px)', gridAutoRows: '1fr', alignItems: 'stretch' }}>
               {results.map((r, i) => {
                 const rec = normalizeResult(r, i)
+                const date = rec.dateStart ? (rec.dateEnd ? `${rec.dateStart} — ${rec.dateEnd}` : rec.dateStart) : 'Not specified'
                 return (
-                  <div key={rec.id} style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 6, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ flex: '0 0 auto' }}>
-                      <a href={rec.url || '#'} target="_blank" rel="noreferrer" style={{ fontSize: 16, fontWeight: 600, color: '#0b57d0' }}>
+                  <article key={rec.id} className="record-briefing" style={{ display: 'flex', flexDirection: 'column' }}>
+                    <header>
+                      <a href={rec.url || '#'} target="_blank" rel="noreferrer" className="record-title epluris-link">
                         {rec.title}
                       </a>
+                    </header>
+
+                    <div className="record-meta">
+                      {`${rec.recordKind ?? 'Unknown'} | ${date} | ${rec.jurisdiction ?? 'Unknown'}`}
                     </div>
 
-                    <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>
-                      <div>Agency: {rec.agency ?? 'Not specified'}</div>
-                      <div>Source: {rec.source ?? 'Not specified'}</div>
-                      <div>Record kind: {rec.recordKind ?? 'Not specified'}</div>
-                      <div>Jurisdiction: {rec.jurisdiction ?? 'Not specified'}</div>
-                      <div>Date: {rec.dateStart ?? 'Not specified'}{rec.dateEnd ? ` — ${rec.dateEnd}` : ''}</div>
-                    </div>
-
-                    <div style={{ marginTop: 8, color: '#333', flex: '1 1 auto' }}>
+                    <div className="epluris-separator" />
+                    <div style={{ color: '#333', marginTop: 8, flex: '1 1 auto' }}>
                       <p style={{ margin: 0 }}>{rec.description ?? 'Not specified'}</p>
                     </div>
 
-                    <div style={{ marginTop: 8, flex: '0 0 auto' }}>
-                      <a href={rec.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-                        View Record
-                      </a>
+                    <div className="epluris-separator" />
+                    <div style={{ marginTop: 8 }}>
+                      <span className="epluris-label">Source:</span> <span className="record-source">{rec.source}</span>
                     </div>
-                  </div>
+                  </article>
                 )
               })}
             </div>
           </div>
         )}
       </section>
-    </main>
+    </div>
   )
 }

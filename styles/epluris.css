@@ -1,0 +1,98 @@
+/* ePluris Design Tokens and Utility Styles - 90s Government Retro Press Room */
+:root {
+  --epluris-navy: #0B1F3A;
+  --epluris-red: #B22234;
+  --epluris-paper: #F7F7F5;
+  --epluris-gray: #6B7280;
+  --epluris-divider: #D1D5DB;
+  --epluris-font-serif: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --epluris-font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Global adjustments reflecting the aesthetic */
+html, body, #__next {
+  background: var(--epluris-paper);
+  color: var(--epluris-navy);
+  font-family: var(--epluris-font-sans);
+}
+
+/* Headings use a serif/slab-serif for authority */
+h1, h2, h3, h4, h5 {
+  font-family: var(--epluris-font-serif);
+  color: var(--epluris-navy);
+  margin: 0 0 0.25rem 0;
+}
+
+/* Section labels and metadata are ALL CAPS */
+.epluris-label {
+  font-family: var(--epluris-font-sans);
+  font-size: 0.78rem;
+  color: var(--epluris-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Search bar: authoritative, no fluff */
+.epluris-search-label {
+  font-family: var(--epluris-font-serif);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: var(--epluris-navy);
+  margin-bottom: 0.5rem;
+}
+
+.epluris-search-bar {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--epluris-navy);
+  background: var(--epluris-paper);
+  color: var(--epluris-navy);
+  font-size: 1.05rem;
+  border-radius: 0;
+  outline: none;
+}
+
+/* Mechanical filter controls */
+.epluris-filters label { display: inline-flex; align-items: center; gap: .5rem; color: var(--epluris-gray); }
+.epluris-checkbox {
+  width: 16px; height: 16px; border: 1px solid var(--epluris-gray); display: inline-block; appearance: none; background: white; margin: 0;
+}
+.epluris-checkbox:checked { background: var(--epluris-navy); border-color: var(--epluris-navy); }
+
+/* Record Briefing (result) */
+.record-briefing {
+  border-bottom: 1px solid var(--epluris-divider);
+  padding: 1rem 0;
+}
+.record-title {
+  font-family: var(--epluris-font-serif);
+  font-weight: 700;
+  color: var(--epluris-navy);
+  margin: 0 0 0.25rem 0;
+}
+.record-meta {
+  font-family: var(--epluris-font-sans);
+  color: var(--epluris-gray);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+.record-source { font-weight: 700; color: var(--epluris-red); }
+
+.epluris-separator { border-top: 1px solid var(--epluris-divider); margin: 0.75rem 0; }
+
+/* Buttons */
+.epluris-btn {
+  display: inline-block; padding: 0.5rem 0.75rem; border: 1px solid var(--epluris-navy); background: transparent; color: var(--epluris-navy); text-transform: uppercase; font-weight: 700; border-radius: 0; cursor: pointer;
+}
+
+/* Vault drawer listing */
+.vault-list { border-left: 3px solid var(--epluris-divider); padding-left: 1rem; }
+
+/* Utility: subtle hover underline only */
+.epluris-link { color: var(--epluris-navy); text-decoration: none; }
+.epluris-link:hover { text-decoration: underline; }
+
+/* Avoid shadows and rounded, keep hard edges */
+* { box-shadow: none !important; }
