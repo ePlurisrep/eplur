@@ -1,30 +1,30 @@
+"use client"
+
 import React from 'react'
 import type { PublicRecord } from '@/types/publicRecord'
+import SaveToVault from '@/components/SaveToVault'
 
-export function RecordGridItem({ record }: { record: PublicRecord }) {
-  const date = record.dateStart ? (record.dateEnd ? `${record.dateStart} — ${record.dateEnd}` : record.dateStart) : 'Not specified'
+export default function RecordGridItem({ record }: { record: PublicRecord }) {
+  const date = record.date ?? 'Not specified'
+
   return (
-    <article className="record-briefing record-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <header style={{ marginBottom: 8 }}>
-        <a href={record.url} target="_blank" rel="noreferrer" className="record-title epluris-link">
-          {record.title}
-        </a>
-      </header>
-
-      <div className="record-meta" style={{ marginBottom: 8 }}>
-        {`${record.recordKind ?? 'Unknown'} | ${date} | ${record.jurisdiction ?? 'Unknown'}`}
+    <article className="record-card" style={{ border: '1px solid #ddd', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div>
+        <a href={`/records/${encodeURIComponent(record.id)}`} className="record-title" style={{ fontWeight: 700, color: '#002868', textDecoration: 'none' }}>{record.title}</a>
       </div>
 
-      <div style={{ color: '#333', flex: '1 1 auto' }}>
-        <p style={{ margin: 0 }}>{record.description ?? 'Not specified'}</p>
+      <div style={{ color: '#111', fontSize: 13, fontFamily: 'monospace' }}>
+        <div><strong>Type:</strong> {record.recordType ?? 'Unknown'}</div>
+        <div><strong>Jurisdiction:</strong> {record.jurisdiction ?? 'Unknown'}</div>
+        <div><strong>Date:</strong> {date}</div>
+        <div><strong>Agency:</strong> {record.agency ?? 'Unknown'}</div>
+        <div><strong>Source:</strong> {record.source ?? 'Unknown'}</div>
       </div>
 
-      <div className="epluris-separator" />
-      <footer style={{ marginTop: 8 }}>
-        <span className="epluris-label">Source</span>: <span className="record-source">{record.source ?? 'Not specified'}</span>
-      </footer>
+      <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+        <a href={`/records/${encodeURIComponent(record.id)}`} style={{ background: '#002868', color: '#fff', padding: '6px 10px', textDecoration: 'none', display: 'inline-block' }}>View Record</a>
+        <SaveToVault record={{ id: record.id, url: record.url, title: record.title, recordType: record.recordType }} />
+      </div>
     </article>
   )
 }
-
-export default RecordGridItem

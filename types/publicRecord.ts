@@ -1,11 +1,11 @@
 export type PublicRecord = {
   id: string
   title: string
-  recordKind: string
-  dateStart?: string
-  dateEnd?: string
+  recordType: string
   jurisdiction?: string
+  date?: string
   source: string
   agency?: string
   url: string
+  originalUrl?: string
 }

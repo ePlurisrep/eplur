@@ -5,10 +5,9 @@ import React, { useState } from 'react'
 type PublicRecord = {
   id: string
   title: string
-  recordKind: string
-  dateStart?: string
-  dateEnd?: string
+  recordType: string
   jurisdiction?: string
+  date?: string
   agency?: string
   source: 'data.gov' | 'congress.gov' | 'state' | 'local' | string
   url: string
@@ -19,14 +18,15 @@ function normalizeResult(item: any, idx: number): PublicRecord {
   const title = item.title ?? item.name ?? 'Untitled'
   const id = String(item.id ?? item.identifier ?? item._id ?? `${title}-${idx}`)
 
-  let recordKind = (item.recordKind || item.type || item.kind || '').toString()
-  if (!recordKind) {
-    if ((item.source || '').toString().toLowerCase().includes('data.gov')) recordKind = 'Dataset'
-    else recordKind = 'Unknown'
+  let recordType = (item.recordType || item.recordKind || item.type || item.kind || '').toString()
+  if (!recordType) {
+    if ((item.source || '').toString().toLowerCase().includes('data.gov')) recordType = 'Dataset'
+    else recordType = 'Unknown'
   }
 
-  const dateStart = item.date || item.date_start || item.metadata_modified || undefined
-  const dateEnd = item.date_end || undefined
+  const dstart = item.date || item.date_start || item.metadata_modified || undefined
+  const dend = item.date_end || undefined
+  const date = dstart && dend ? `${dstart} — ${dend}` : dstart ?? undefined
   const jurisdiction = item.jurisdiction ?? item.country ?? item.jurisdiction_name ?? undefined
   const agency = item.agency ?? item.agencyName ?? item.organization ?? undefined
   const source = (item.source ?? item.provider ?? 'unknown').toString()
@@ -35,9 +35,8 @@ function normalizeResult(item: any, idx: number): PublicRecord {
   return {
     id,
     title,
-    recordKind,
-    dateStart,
-    dateEnd,
+    recordType,
+    date,
     jurisdiction,
     agency,
     source: source as PublicRecord['source'],
@@ -48,7 +47,7 @@ function normalizeResult(item: any, idx: number): PublicRecord {
 
 export default function Home() {
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<SearchResult[] | null>(null)
+  const [results, setResults] = useState<PublicRecord[] | null>(null)
   const [loading, setLoading] = useState(false)
 
   const handleSearch = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -98,36 +97,33 @@ export default function Home() {
           <div>
             <div style={{ marginBottom: 12, color: '#333' }}>{results.length} results</div>
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, 320px)', gridAutoRows: '1fr', alignItems: 'stretch' }}>
-              {results.map((r, i) => {
-                const rec = normalizeResult(r, i)
-                return (
-                  <div key={rec.id} style={{ border: '1px solid #e6e6e6', padding: 12, borderRadius: 6, display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ flex: '0 0 auto' }}>
-                      <a href={rec.url || '#'} target="_blank" rel="noreferrer" style={{ fontSize: 16, fontWeight: 600, color: '#0b57d0' }}>
-                        {rec.title}
-                      </a>
-                    </div>
+              {results.map((rec) => (
+                <div key={rec.id} style={{ border: '1px solid #e6e6e6', padding: 12, display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: '0 0 auto' }}>
+                    <a href={rec.url || '#'} target="_blank" rel="noreferrer" style={{ fontSize: 16, fontWeight: 600, color: '#0b57d0' }}>
+                      {rec.title}
+                    </a>
+                  </div>
 
                     <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>
-                      <div>Agency: {rec.agency ?? 'Not specified'}</div>
-                      <div>Source: {rec.source ?? 'Not specified'}</div>
-                      <div>Record kind: {rec.recordKind ?? 'Not specified'}</div>
-                      <div>Jurisdiction: {rec.jurisdiction ?? 'Not specified'}</div>
-                      <div>Date: {rec.dateStart ?? 'Not specified'}{rec.dateEnd ? ` — ${rec.dateEnd}` : ''}</div>
-                    </div>
-
-                    <div style={{ marginTop: 8, color: '#333', flex: '1 1 auto' }}>
-                      <p style={{ margin: 0 }}>{rec.description ?? 'Not specified'}</p>
-                    </div>
-
-                    <div style={{ marginTop: 8, flex: '0 0 auto' }}>
-                      <a href={rec.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-                        View Record
-                      </a>
-                    </div>
+                    <div>Agency: {rec.agency ?? 'Not specified'}</div>
+                    <div>Source: {rec.source ?? 'Not specified'}</div>
+                    <div>Type: {rec.recordType ?? 'Not specified'}</div>
+                    <div>Jurisdiction: {rec.jurisdiction ?? 'Not specified'}</div>
+                    <div>Date: {rec.date ?? 'Not specified'}</div>
                   </div>
-                )
-              })}
+
+                  <div style={{ marginTop: 8, color: '#333', flex: '1 1 auto' }}>
+                    <p style={{ margin: 0 }}>{rec.description ?? 'Not specified'}</p>
+                  </div>
+
+                  <div style={{ marginTop: 8, flex: '0 0 auto' }}>
+                    <a href={rec.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
+                      View Record
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

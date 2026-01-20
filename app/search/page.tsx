@@ -1,37 +1,20 @@
-"use client"
-
-import { useEffect, useState } from 'react'
-import { normalizeSearchResult } from '@/lib/normalizeSearchResult'
-import { RecordGridItem } from '@/components/RecordGridItem'
-import type { PublicRecord } from '@/types/publicRecord'
+import SearchClient from '@/components/SearchClient'
 
 export const metadata = {
   title: 'Search — ePluris',
 }
 
 export default function SearchPage() {
-  const [records, setRecords] = useState<PublicRecord[]>([])
-
-  useEffect(() => {
-    async function runSearch() {
-      const res = await fetch('/api/proxy/search?q=hate')
-      const data = await res.json()
-
-      const raw = data.results ?? (Array.isArray(data) ? data : [])
-
-      const normalized = raw.map((r: any, i: number) => normalizeSearchResult(r, i))
-
-      setRecords(normalized)
-    }
-
-    runSearch()
-  }, [])
-
   return (
-    <section className="results-grid">
-      {records.map((record) => (
-        <RecordGridItem key={record.id} record={record} />
-      ))}
-    </section>
+    <main>
+      <h1 style={{ padding: '16px 24px', margin: 0 }}>
+        Search
+      </h1>
+
+      <section style={{ padding: '12px 24px' }}>
+        <SearchClient />
+      </section>
+    </main>
   )
 }
+
