@@ -1,3 +1,4 @@
+import React from 'react'
 import SearchClient from '@/components/SearchClient'
 
 export const metadata = {
@@ -12,7 +13,9 @@ export default function SearchPage() {
       </h1>
 
       <section style={{ padding: '12px 24px' }}>
-        <SearchClient />
+        <React.Suspense fallback={<div>Loading search…</div>}>
+          <SearchClient />
+        </React.Suspense>
       </section>
     </main>
   )

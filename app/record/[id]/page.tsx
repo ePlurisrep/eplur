@@ -1,8 +1,5 @@
-import { redirect } from 'next/navigation'
+import RecordViewer from '@/components/RecordViewer'
 
-type Props = { params: { id: string } }
-
-export default function RedirectRecord({ params }: Props) {
-  // canonical route moved to /records/[id]
-  redirect(`/records/${encodeURIComponent(params.id)}`)
+export default function RecordPage({ params }: { params: { id: string } }) {
+  return <RecordViewer id={decodeURIComponent(params.id)} />
 }

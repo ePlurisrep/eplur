@@ -109,3 +109,49 @@ CREATE POLICY "Users can manage own saved graphs" ON saved_graphs
 -- Allow public read by share_id
 CREATE POLICY "Public read by share_id" ON saved_graphs
   FOR SELECT USING (public = true);
+
+-- Profiles table: links Supabase auth users to app profiles
+CREATE TABLE IF NOT EXISTS profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Vault records: user-specific evidence (local-first sync target)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+CREATE TABLE IF NOT EXISTS vault_records (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+
+  record_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  url TEXT,
+
+  record_type TEXT,
+  jurisdiction TEXT,
+  agency TEXT,
+  source TEXT,
+  record_date TEXT,
+
+  tags TEXT[] DEFAULT '{}',
+
+  saved_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Enable Row Level Security for privacy
+ALTER TABLE vault_records ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users see their own records"
+  ON vault_records
+  FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users insert their own records"
+  ON vault_records
+  FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users update their own records"
+  ON vault_records
+  FOR UPDATE
+  USING (auth.uid() = user_id);

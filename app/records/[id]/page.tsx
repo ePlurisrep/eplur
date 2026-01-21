@@ -1,4 +1,4 @@
-import { getRecordById } from '@/lib/records'
+import { getRecordById, getRelatedRecords } from '@/lib/records'
 import RecordIframe from '@/components/RecordIframe'
 import SaveToVault from '@/components/SaveToVault'
 
@@ -88,8 +88,54 @@ export default async function RecordPage({ params }: Props) {
               </tr>
             </tbody>
           </table>
+
+          <div style={{ marginTop: 18 }}>
+            <div className="section-title">Provenance</div>
+            <table className="record-meta-table" role="presentation">
+              <tbody>
+                <tr>
+                  <th>Fetched At</th>
+                  <td>{record.fetchedAt ?? 'Unknown'}</td>
+                </tr>
+                <tr>
+                  <th>Content Type</th>
+                  <td>{record.contentType ?? 'Unknown'}</td>
+                </tr>
+                <tr>
+                  <th>Notes</th>
+                  <td>Iframe-first view; if the source blocks embedding, use "Open Official Source".</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <div className="section-title">Related Records</div>
+            {/* Related records rendered server-side via a small heuristic */}
+            <RelatedRecords serverId={record.id} />
+          </div>
         </section>
       </div>
     </main>
+  )
+}
+
+// Server-side wrapper component to fetch and render related records
+async function RelatedRecords({ serverId }: { serverId: string }) {
+  const related = await getRelatedRecords(serverId, 6)
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+      {related.map((r) => (
+        <article key={r.id} style={{ border: '1px solid #eee', padding: 10, background: '#fff' }}>
+          <h4 style={{ margin: '0 0 6px 0' }}><a href={`/records/${encodeURIComponent(r.id)}`} style={{ color: '#002868', textDecoration: 'none' }}>{r.title}</a></h4>
+          <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#333' }}>{r.date}</div>
+          <div style={{ marginTop: 8 }}>
+            <a href={r.originalUrl} target="_blank" rel="noreferrer" style={{ marginRight: 8 }}>Open Source</a>
+            <a href={`/records/${encodeURIComponent(r.id)}`}>View Record</a>
+          </div>
+        </article>
+      ))}
+    </div>
   )
 }
