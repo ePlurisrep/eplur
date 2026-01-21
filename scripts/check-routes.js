@@ -34,7 +34,11 @@ walk(root, (p, stat) => {
 })
 
 // Normalize to unique relative paths
-const uniquePages = [...new Set(pagesDirs.map((d) => path.relative(root, d)))]
+let uniquePages = [...new Set(pagesDirs.map((d) => path.relative(root, d)))]
+
+// If repository contains a nested folder matching the repo basename (common when a repo copy exists), ignore its pages dir
+const repoBasename = path.basename(root)
+uniquePages = uniquePages.filter((p) => p !== path.join(repoBasename, 'pages'))
 
 if (uniquePages.length > 1) {
   console.error('Routing lock error: multiple `pages/` directories found:')

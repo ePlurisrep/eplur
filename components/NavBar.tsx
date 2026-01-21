@@ -1,42 +1,8 @@
-import React from 'react'
+"use client"
 
-export default function NavBar() {
-  return (
-    <nav
-      style={{
-        borderBottom: '2px solid #002868',
-        background: '#f8f8f8',
-        padding: '12px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 24,
-        fontFamily: 'monospace',
-      }}
-    >
-      <strong style={{ fontSize: 18, color: '#002868' }}>
-        ePluris
-      </strong>
-
-      <a href="/search" style={linkStyle}>Search</a>
-      <a href="/vault" style={linkStyle}>Vault</a>
-
-      <span style={{ marginLeft: 'auto', fontSize: 12, color: '#555' }}>
-        United States Public Records
-      </span>
-    </nav>
-  )
-}
-
-const linkStyle: React.CSSProperties = {
-  textDecoration: 'none',
-  color: '#111',
-  fontWeight: 600,
-}
-'use client'
-
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
 
 export default function NavBar() {
   const pathname = usePathname()
