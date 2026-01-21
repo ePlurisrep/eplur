@@ -1,3 +1,32 @@
+import { VaultRecord } from './vaultTypes'
+
+const KEY = 'epluris:vault'
+
+export function getVault(): VaultRecord[] {
+  if (typeof window === 'undefined') return []
+  try {
+    return JSON.parse(localStorage.getItem(KEY) || '[]')
+  } catch {
+    return []
+  }
+}
+
+export function saveToVault(record: VaultRecord) {
+  const existing = getVault()
+  if (existing.find((r) => r.id === record.id)) return
+
+  localStorage.setItem(
+    KEY,
+    JSON.stringify([...existing, record])
+  )
+}
+
+export function removeFromVault(id: string) {
+  localStorage.setItem(
+    KEY,
+    JSON.stringify(getVault().filter((r) => r.id !== id))
+  )
+}
 const KEY = 'epluris_vault'
 
 export function getVault() {

@@ -1,3 +1,32 @@
+'use client'
+
+import { saveToVault } from '@/lib/vault'
+import { VaultRecord } from '@/lib/vaultTypes'
+
+export default function SaveToVault({
+  record,
+}: {
+  record: VaultRecord
+}) {
+  return (
+    <button
+      onClick={() =>
+        saveToVault({
+          ...record,
+          savedAt: new Date().toISOString(),
+        })
+      }
+      style={{
+        padding: '6px 10px',
+        border: '1px solid #002868',
+        background: '#fff',
+        cursor: 'pointer',
+      }}
+    >
+      Save
+    </button>
+  )
+}
 "use client"
 
 import React, { useState, useEffect } from 'react'

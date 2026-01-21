@@ -1,109 +1,81 @@
-import { notFound } from 'next/navigation'
+import { getRecordById } from '@/lib/data'
+import Link from 'next/link'
 
-type RecordPageProps = {
+export default async function RecordPage({
+  params,
+}: {
   params: { id: string }
-}
+}) {
+  const record = await getRecordById(params.id)
 
-async function getRecord(id: string) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/proxy/record?id=${encodeURIComponent(id)}`,
-    { cache: 'no-store' }
-  )
-
-  if (!res.ok) return null
-  return res.json()
-}
-
-export default async function RecordPage({ params }: RecordPageProps) {
-  const record = await getRecord(params.id)
-
-  if (!record) notFound()
+  if (!record) {
+    return <p>Record not found.</p>
+  }
 
   return (
-    <main style={{ padding: '24px', maxWidth: 900 }}>
-      <h1 style={{ fontWeight: 800, marginBottom: 12 }}>
-        {record.title}
-      </h1>
-
-      {/* Metadata */}
-      <section
+    <main
+      style={{
+        padding: '24px',
+        fontFamily: 'Georgia, serif',
+        maxWidth: 920,
+      }}
+    >
+      <header
         style={{
-          border: '1px solid #ccc',
-          padding: 12,
-          marginBottom: 20,
-          fontFamily: 'monospace',
-          fontSize: 13,
+          borderBottom: '2px solid #002868',
+          marginBottom: 24,
         }}
       >
-        <div><strong>Type:</strong> {record.recordType ?? 'Unknown'}</div>
-        <div><strong>Jurisdiction:</strong> {record.jurisdiction ?? 'Unknown'}</div>
-        <div><strong>Date:</strong> {record.date ?? 'Not specified'}</div>
-        <div><strong>Agency:</strong> {record.agency ?? 'Unknown'}</div>
-        <div><strong>Source:</strong> {record.source ?? 'Unknown'}</div>
+        <h1 style={{ margin: 0 }}>{record.title}</h1>
+
+        <p style={{ fontSize: 14, color: '#444' }}>
+          {record.agency} — {record.jurisdiction}
+        </p>
+      </header>
+
+      <section style={{ marginBottom: 24 }}>
+        <strong>Summary</strong>
+        <p>{record.summary ?? 'No summary available.'}</p>
       </section>
 
-      {/* Actions */}
-      <section style={{ display: 'flex', gap: 12 }}>
-        {record.url && (
-          <>
-            <a
-              href={record.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                background: 'var(--gov-blue)',
-                color: '#fff',
-                padding: '8px 14px',
-                textDecoration: 'none',
-              }}
-            >
-              Open Original Document
-            </a>
-
-            <a
-              href={record.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ marginLeft: 8, fontSize: 13, color: 'var(--gov-blue)' }}
-            >
-              View in new tab
-            </a>
-          </>
-        )}
+      <section style={{ marginBottom: 24 }}>
+        <strong>Source</strong>
+        <p>
+          <a href={record.sourceUrl} target="_blank">
+            {record.sourceUrl}
+          </a>
+        </p>
       </section>
 
-      {/* Preview area: attempt embed/iframe where appropriate but always show source link */}
-      <section style={{ marginTop: 18 }}>
-        {record.contentType?.toLowerCase().includes('pdf') && record.url ? (
-          <div>
-            <embed src={record.url} type="application/pdf" width="100%" height={700} />
-            <div style={{ marginTop: 8 }}>
-              <a href={record.url} target="_blank" rel="noopener noreferrer">Open original (new tab)</a>
-            </div>
-          </div>
-        ) : record.contentType?.toLowerCase().includes('html') && record.url ? (
-          <div>
-            <iframe
-              src={record.url}
-              sandbox="allow-scripts allow-forms"
-              style={{ width: '100%', height: 700, border: '1px solid var(--gov-border)' }}
-              title="Record preview"
-            />
-            <div style={{ marginTop: 8 }}>
-              <a href={record.url} target="_blank" rel="noopener noreferrer">Open original (new tab)</a>
-            </div>
-          </div>
-        ) : (
-          <div style={{ padding: 12, border: '1px solid var(--gov-border)', background: 'var(--gov-gray)' }}>
-            <div style={{ marginBottom: 8 }}>Preview not available for this record type. You can open the source below.</div>
-            {record.url && (
-              <div>
-                <a href={record.url} target="_blank" rel="noopener noreferrer">Open original (new tab)</a>
-              </div>
-            )}
-          </div>
-        )}
+      <section>
+        <strong>Metadata</strong>
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: 14,
+          }}
+        >
+          <tbody>
+            <Row label="Record ID" value={record.id} />
+            <Row label="Record Type" value={record.recordType} />
+            <Row label="Published" value={record.publishedAt} />
+          </tbody>
+        </table>
       </section>
+
+      <footer style={{ marginTop: 32 }}>
+        <Link href="/search">← Back to search</Link>
+      </footer>
     </main>
+  )
+}
+
+function Row({ label, value }: { label: string; value?: string }) {
+  return (
+    <tr>
+      <td style={{ padding: 6, fontWeight: 'bold' }}>{label}</td>
+      <td style={{ padding: 6 }}>{value ?? '—'}</td>
+    </tr>
   )
 }
