@@ -1,0 +1,27 @@
+:root {
+  --gov-blue: #002868;
+  --gov-red: #b22234;
+  --gov-gray: #f4f4f4;
+  --gov-black: #111111;
+  --gov-border: #cccccc;
+}
+
+body {
+  margin: 0;
+  background: white;
+  color: var(--gov-black);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+a {
+  color: var(--gov-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.gov-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}

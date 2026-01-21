@@ -12,7 +12,7 @@ export default function VaultClient() {
   }, [])
 
   if (!records.length) {
-    return <p>No records saved yet.</p>
+    return <p style={{ padding: 24 }}>No records saved yet.</p>
   }
 
   return (

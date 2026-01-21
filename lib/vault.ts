@@ -17,3 +17,18 @@ export function saveToVault(record: any) {
   vault.push(entry)
   localStorage.setItem(KEY, JSON.stringify(vault))
 }
+
+export function updateVaultEntry(id: string, patch: Partial<any>) {
+  if (typeof window === 'undefined') return
+  const vault = getVault()
+  const idx = vault.findIndex((r: any) => r.id === id)
+  if (idx === -1) return
+  vault[idx] = { ...vault[idx], ...patch }
+  localStorage.setItem(KEY, JSON.stringify(vault))
+}
+
+export function removeFromVault(id: string) {
+  if (typeof window === 'undefined') return
+  const vault = getVault().filter((r: any) => r.id !== id)
+  localStorage.setItem(KEY, JSON.stringify(vault))
+}
