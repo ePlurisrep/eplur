@@ -41,10 +41,32 @@ export default async function RecordPage({
       <section style={{ marginBottom: 24 }}>
         <strong>Source</strong>
         <p>
-          <a href={record.sourceUrl} target="_blank">
-            {record.sourceUrl}
+          <a href={record.url} target="_blank">
+            {record.url ?? record.source ?? 'Open source'}
           </a>
         </p>
+      </section>
+
+      <section style={{ marginBottom: 24 }}>
+        <strong>GOVERNANCE CONTEXT</strong>
+        <div style={{ marginTop: 8 }}>
+          {record.links && record.links.length > 0 ? (
+            <ul>
+              {record.links.map((l) => {
+                const year = l.startDate ? new Date(l.startDate).getFullYear() : record.date ? new Date(record.date).getFullYear() : undefined
+                return (
+                  <li key={`${l.recordId}-${l.nodeId}`}>
+                    <a href={`/government?year=${year ?? ''}&node=${encodeURIComponent(l.nodeId)}`}>
+                      {l.relevanceType} — {l.nodeId} {year ? `(${year})` : ''}
+                    </a>
+                  </li>
+                )
+              })}
+            </ul>
+          ) : (
+            <div style={{ color: '#666' }}>No governance links available for this record.</div>
+          )}
+        </div>
       </section>
 
       <section>
@@ -59,7 +81,7 @@ export default async function RecordPage({
           <tbody>
             <Row label="Record ID" value={record.id} />
             <Row label="Record Type" value={record.recordType} />
-            <Row label="Published" value={record.publishedAt} />
+            <Row label="Published" value={record.date} />
           </tbody>
         </table>
       </section>

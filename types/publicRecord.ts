@@ -1,3 +1,5 @@
+import type { RecordLink } from './governmentGraph'
+
 export interface PublicRecord {
   id: string
   title: string
@@ -8,4 +10,7 @@ export interface PublicRecord {
   url?: string
   date?: string
   summary?: string
+
+  // optional governance links tying this record to GovernmentNode ids
+  links?: RecordLink[]
 }
