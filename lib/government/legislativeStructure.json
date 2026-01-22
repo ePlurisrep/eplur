@@ -1,0 +1,24 @@
+{
+  "id": "legislative",
+  "label": "Legislative Branch",
+  "description": "Congress, consisting of the House of Representatives and the Senate, is responsible for making federal law.",
+  "currentCongress": 118,
+  "congresses": [
+    { "congress": 118, "startYear": 2023, "endYear": 2024 },
+    { "congress": 117, "startYear": 2021, "endYear": 2022 },
+    { "congress": 116, "startYear": 2019, "endYear": 2020 }
+  ],
+  "structure": {
+    "chambers": [
+      { "id": "house", "label": "House of Representatives" },
+      { "id": "senate", "label": "Senate" }
+    ],
+    "committees": {
+      "standing": [
+        { "code": "HSINT", "name": "House Intelligence Committee" }
+      ],
+      "select": [],
+      "joint": []
+    }
+  }
+}

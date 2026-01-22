@@ -5,18 +5,42 @@ export const metadata = {
 }
 
 export default async function MembersIndexPage() {
-  const res = await fetch('/api/congress/members')
+  const API_KEY = process.env.CONGRESS_API_KEY
+  const BASE = 'https://api.congress.gov/v3'
+
+  if (!API_KEY) {
+    return (
+      <main style={{ padding: 24 }}>
+        <h1>Members</h1>
+        <p>CONGRESS_API_KEY not configured; cannot load members list.</p>
+      </main>
+    )
+  }
+
+  const res = await fetch(`${BASE}/member?limit=250&api_key=${API_KEY}`, { next: { revalidate: 3600 } })
   if (!res.ok) {
     return (
       <main style={{ padding: 24 }}>
         <h1>Members</h1>
-        <p>Unable to load members list.</p>
+        <p>Unable to load members list from Congress API.</p>
       </main>
     )
   }
 
   const data = await res.json()
-  const members = data.members ?? []
+  const members = (data.members ?? []).map((m: any) => ({
+    bioguideId: m.bioguideId || m.id,
+    name: m.name,
+    chamber: m.chamber,
+    state: m.state,
+    party: m.partyName || m.party,
+    terms: (m.terms || []).map((t: any) => ({
+      congress: t.congress,
+      startYear: t.startYear || (t.start && new Date(t.start).getFullYear()),
+      endYear: t.endYear || (t.end && new Date(t.end).getFullYear()),
+      party: t.party || t.partyName,
+    })),
+  }))
 
   function isActive(terms: any[]) {
     if (!Array.isArray(terms) || terms.length === 0) return false

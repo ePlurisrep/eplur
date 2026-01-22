@@ -18,7 +18,7 @@ export default function GovernmentTimeline() {
     setYear(y)
     const params = new URLSearchParams(Array.from((searchParams ?? new URLSearchParams()).entries()))
     params.set('year', String(y))
-    router.push(`/government?${params.toString()}`, { forceOptimisticNavigation: true })
+    router.push(`/government?${params.toString()}`)
   }
 
   return (

@@ -1,15 +1,18 @@
 export const metadata = {
-  title: 'United States Government — ePluris',
+  title: 'Structure of the United States Government — ePluris',
 }
 
 export default function GovernmentPage() {
   return (
     <main style={{ padding: '24px', maxWidth: 1200 }}>
-      <h1 style={{ marginBottom: 8 }}>United States Government</h1>
+      <h1 style={{ marginBottom: 8, fontFamily: 'serif', fontSize: 40 }}>
+        Structure of the United States Government
+      </h1>
       <p style={{ maxWidth: 720 }}>
         The United States Government is divided into three co-equal branches
         established by the Constitution. Each branch has distinct powers,
-        responsibilities, and institutional structures.
+        responsibilities, and institutional structures. Use these pages as the
+        authoritative hub for how institutions are organized and related.
       </p>
 
       <section
@@ -68,11 +71,15 @@ function BranchCard({
         style={{
           marginTop: 'auto',
           fontWeight: 700,
-          color: '#002868',
+          color: '#fff',
+          background: '#002868',
+          padding: '8px 12px',
           textDecoration: 'none',
+          borderRadius: 4,
+          display: 'inline-block',
         }}
       >
-        View →
+        Explore
       </a>
     </article>
   )

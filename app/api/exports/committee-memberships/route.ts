@@ -22,6 +22,7 @@ export async function GET(req: Request) {
       role: m.role,
       congress: m.congress,
       chamber: committee?.chamber || null,
+      party: null,
     }
   })
 
