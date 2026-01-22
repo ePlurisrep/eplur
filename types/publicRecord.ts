@@ -1,16 +1,11 @@
-export type PublicRecord = {
+export interface PublicRecord {
   id: string
   title: string
-  recordType: string
+  recordType?: string
   jurisdiction?: string
-  date?: string
-  source: string
   agency?: string
-  url: string
-  originalUrl?: string
-  // Optional provenance / fetch metadata
-  fetchedAt?: string
-  contentType?: string
-  // Optional user tagging when surfaced from the Vault
-  tags?: string[]
+  source?: string
+  url?: string
+  date?: string
+  summary?: string
 }

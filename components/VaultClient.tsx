@@ -1,65 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getVault, removeFromVault } from '@/lib/vault'
-import type { VaultRecord } from '@/lib/vaultTypes'
-import Link from 'next/link'
-
-export default function VaultClient() {
-  const [records, setRecords] = useState<VaultRecord[]>([])
-
-  useEffect(() => {
-    setRecords(getVault())
-  }, [])
-
-  if (!records.length) {
-    return <p>No saved records yet.</p>
-  }
-
-  return (
-    <ul style={{ listStyle: 'none', padding: 0 }}>
-      {records.map((r) => (
-        <li
-          key={r.id}
-          style={{
-            borderBottom: '1px solid #ddd',
-            padding: '12px 0',
-          }}
-        >
-          <Link href={`/record/${r.id}`}>
-            <strong>{r.title}</strong>
-          </Link>
-
-          <div style={{ fontSize: 13 }}>
-            {r.agency} — {r.jurisdiction}
-          </div>
-
-          <button
-            onClick={() => {
-              removeFromVault(r.id)
-              setRecords(getVault())
-            }}
-            style={{
-              fontSize: 12,
-              marginTop: 6,
-              background: 'none',
-              border: 'none',
-              color: '#900',
-              cursor: 'pointer',
-            }}
-          >
-            Remove
-          </button>
-        </li>
-      ))}
-    </ul>
-  )
-}
-"use client"
-
 import React, { useEffect, useState } from 'react'
-import { getVault } from '@/lib/vault'
-import RecordGridItem from '@/components/RecordGridItem'
+import { getVault, removeFromVault } from '@/lib/vault'
+import ResultCard from '@/components/ResultCard'
 
 export default function VaultClient() {
   const [records, setRecords] = useState<any[]>([])
@@ -68,20 +11,25 @@ export default function VaultClient() {
     setRecords(getVault())
   }, [])
 
-  if (!records.length) {
-    return <p style={{ padding: 24 }}>No records saved yet.</p>
-  }
+  if (!records.length) return <p style={{ padding: 24 }}>No records saved yet.</p>
 
   return (
-    <section
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-        gap: 16,
-      }}
-    >
+    <section style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 12, background: '#f6f7f9', borderRadius: 8 }}>
       {records.map((r) => (
-        <RecordGridItem key={r.id} record={r} />
+        <div key={r.id} style={{ background: '#fff', padding: 12, borderRadius: 6 }}>
+          <ResultCard result={r} />
+          <div style={{ marginTop: 8, textAlign: 'right' }}>
+            <button
+              onClick={() => {
+                removeFromVault(r.id)
+                setRecords(getVault())
+              }}
+              style={{ fontSize: 12, background: '#fff', border: '1px solid #ddd', padding: '6px 10px', color: '#900', cursor: 'pointer', borderRadius: 4 }}
+            >
+              Remove
+            </button>
+          </div>
+        </div>
       ))}
     </section>
   )

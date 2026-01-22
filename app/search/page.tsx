@@ -1,4 +1,5 @@
 import React from 'react'
+import SearchFilters from '@/components/SearchFilters'
 import SearchClient from '@/components/SearchClient'
 
 export const metadata = {
@@ -7,12 +8,21 @@ export const metadata = {
 
 export default function SearchPage() {
   return (
-    <main>
-      <h1 style={{ padding: '16px 24px', margin: 0 }}>
-        Search
-      </h1>
+    <main
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '260px 1fr',
+        gap: 24,
+        padding: '24px',
+      }}
+    >
+      <aside>
+        <React.Suspense fallback={<div>Loading filters…</div>}>
+          <SearchFilters />
+        </React.Suspense>
+      </aside>
 
-      <section style={{ padding: '12px 24px' }}>
+      <section>
         <React.Suspense fallback={<div>Loading search…</div>}>
           <SearchClient />
         </React.Suspense>

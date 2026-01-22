@@ -17,11 +17,7 @@ export async function getRecordById(id: string): Promise<PublicRecord | null> {
     recordType: id.startsWith('ds') ? 'Dataset' : 'Document',
     jurisdiction: 'United States',
     source: 'Example Agency',
-    originalUrl: `https://example.com/original/${encodeURIComponent(id)}`,
     date: new Date().toISOString().slice(0, 10),
-    // provenance metadata (mocked for now)
-    fetchedAt: new Date().toISOString(),
-    contentType: id.endsWith('.pdf') ? 'application/pdf' : 'text/html',
   }
 }
 
@@ -47,10 +43,7 @@ export async function getRelatedRecords(id: string, limit = 6): Promise<PublicRe
       recordType: id.startsWith('ds') ? 'Dataset' : 'Document',
       jurisdiction: 'United States',
       source: 'Example Agency',
-      originalUrl: `https://example.com/original/${encodeURIComponent(rid)}`,
       date: new Date(Date.now() - i * 86400000).toISOString().slice(0, 10),
-      fetchedAt: new Date(Date.now() - i * 60000).toISOString(),
-      contentType: 'text/html',
     })
   }
 

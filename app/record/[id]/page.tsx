@@ -1,4 +1,4 @@
-import { getRecordById } from '@/lib/data'
+import { fetchRecord } from '@/lib/fetchRecord'
 import Link from 'next/link'
 
 export default async function RecordPage({
@@ -6,7 +6,7 @@ export default async function RecordPage({
 }: {
   params: { id: string }
 }) {
-  const record = await getRecordById(params.id)
+  const record = await fetchRecord(params.id)
 
   if (!record) {
     return <p>Record not found.</p>

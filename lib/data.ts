@@ -1,4 +1,4 @@
-import type { PublicRecord } from './records'
+import type { PublicRecord } from '@/types/publicRecord'
 import { getRecordById as fetchRecordById } from './records'
 
 export type NormalizedRecord = {
@@ -16,16 +16,17 @@ export async function getRecordById(id: string): Promise<NormalizedRecord | null
   const raw = await fetchRecordById(id)
   if (!raw) return null
 
-  // Normalization: map fields from the raw PublicRecord into our minimal contract
+  // Normalization: map fields from the raw record into our minimal contract
+  const r: any = raw
   const normalized: NormalizedRecord = {
-    id: String(raw.id),
-    title: String(raw.title ?? 'Untitled'),
-    agency: raw.source ?? raw.agency ?? undefined,
-    jurisdiction: raw.jurisdiction ?? undefined,
-    recordType: raw.recordType ?? undefined,
-    summary: (raw.description ?? raw.summary ?? raw.excerpt) ?? undefined,
-    sourceUrl: raw.originalUrl ?? raw.sourceUrl ?? raw.url ?? undefined,
-    publishedAt: raw.date ?? raw.publishedAt ?? raw.createdAt ?? undefined,
+    id: String(r.id),
+    title: String(r.title ?? 'Untitled'),
+    agency: r.source ?? r.agency ?? undefined,
+    jurisdiction: r.jurisdiction ?? undefined,
+    recordType: r.recordType ?? undefined,
+    summary: (r.description ?? r.summary ?? r.excerpt) ?? undefined,
+    sourceUrl: r.originalUrl ?? r.sourceUrl ?? r.url ?? undefined,
+    publishedAt: r.date ?? r.publishedAt ?? r.createdAt ?? undefined,
   }
 
   return normalized

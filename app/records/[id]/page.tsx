@@ -52,12 +52,12 @@ export default async function RecordPage({ params }: Props) {
       <div className="record-container">
         <div className="record-header">ePluris | Public Record Viewer</div>
 
-        <RecordIframe src={record.url} title={record.title} />
+        <RecordIframe src={record.url ?? ''} title={record.title} />
 
-        <section className="record-controls">
+          <section className="record-controls">
           <SaveToVault record={{ id: record.id, url: record.url, title: record.title, recordType: record.recordType }} />
           <a className="control-btn" href={`#metadata`}>View Metadata</a>
-          <a className="control-btn" href={record.originalUrl} target="_blank" rel="noreferrer">Open Official Source</a>
+          <a className="control-btn" href={record.url ?? '#'} target="_blank" rel="noreferrer">Open Official Source</a>
         </section>
 
         <section id="metadata" className="record-metadata">
@@ -84,7 +84,7 @@ export default async function RecordPage({ params }: Props) {
               </tr>
               <tr>
                 <th>Original URL</th>
-                <td><a href={record.originalUrl} target="_blank" rel="noreferrer">{record.originalUrl}</a></td>
+                <td><a href={record.url ?? '#'} target="_blank" rel="noreferrer">{record.url ?? 'Unavailable'}</a></td>
               </tr>
             </tbody>
           </table>
@@ -95,11 +95,11 @@ export default async function RecordPage({ params }: Props) {
               <tbody>
                 <tr>
                   <th>Fetched At</th>
-                  <td>{record.fetchedAt ?? 'Unknown'}</td>
+                  <td>Unknown</td>
                 </tr>
                 <tr>
                   <th>Content Type</th>
-                  <td>{record.contentType ?? 'Unknown'}</td>
+                  <td>Unknown</td>
                 </tr>
                 <tr>
                   <th>Notes</th>
@@ -126,12 +126,12 @@ async function RelatedRecords({ serverId }: { serverId: string }) {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-      {related.map((r) => (
+            {related.map((r) => (
         <article key={r.id} style={{ border: '1px solid #eee', padding: 10, background: '#fff' }}>
           <h4 style={{ margin: '0 0 6px 0' }}><a href={`/records/${encodeURIComponent(r.id)}`} style={{ color: '#002868', textDecoration: 'none' }}>{r.title}</a></h4>
           <div style={{ fontFamily: 'monospace', fontSize: 12, color: '#333' }}>{r.date}</div>
           <div style={{ marginTop: 8 }}>
-            <a href={r.originalUrl} target="_blank" rel="noreferrer" style={{ marginRight: 8 }}>Open Source</a>
+            <a href={r.url ?? '#'} target="_blank" rel="noreferrer" style={{ marginRight: 8 }}>Open Source</a>
             <a href={`/records/${encodeURIComponent(r.id)}`}>View Record</a>
           </div>
         </article>

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
+import ResultCard from '@/components/ResultCard'
 
 type PublicRecord = {
   id: string
@@ -98,30 +99,8 @@ export default function Home() {
             <div style={{ marginBottom: 12, color: '#333' }}>{results.length} results</div>
             <div style={{ display: 'grid', gap: 12, gridTemplateColumns: 'repeat(auto-fill, 320px)', gridAutoRows: '1fr', alignItems: 'stretch' }}>
               {results.map((rec) => (
-                <div key={rec.id} style={{ border: '1px solid #e6e6e6', padding: 12, display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ flex: '0 0 auto' }}>
-                    <a href={rec.url || '#'} target="_blank" rel="noreferrer" style={{ fontSize: 16, fontWeight: 600, color: '#0b57d0' }}>
-                      {rec.title}
-                    </a>
-                  </div>
-
-                    <div style={{ fontSize: 13, color: '#666', marginTop: 8 }}>
-                    <div>Agency: {rec.agency ?? 'Not specified'}</div>
-                    <div>Source: {rec.source ?? 'Not specified'}</div>
-                    <div>Type: {rec.recordType ?? 'Not specified'}</div>
-                    <div>Jurisdiction: {rec.jurisdiction ?? 'Not specified'}</div>
-                    <div>Date: {rec.date ?? 'Not specified'}</div>
-                  </div>
-
-                  <div style={{ marginTop: 8, color: '#333', flex: '1 1 auto' }}>
-                    <p style={{ margin: 0 }}>{rec.description ?? 'Not specified'}</p>
-                  </div>
-
-                  <div style={{ marginTop: 8, flex: '0 0 auto' }}>
-                    <a href={rec.url} target="_blank" rel="noreferrer" style={{ fontSize: 13 }}>
-                      View Record
-                    </a>
-                  </div>
+                <div key={rec.id}>
+                  <ResultCard result={rec} />
                 </div>
               ))}
             </div>

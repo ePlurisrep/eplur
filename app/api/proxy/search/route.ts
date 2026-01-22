@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchAll } from '../../../../lib/search/searchAll'
+import { normalizeSearchResult } from '@/lib/normalizeSearchResult'
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,9 +11,19 @@ export async function GET(request: NextRequest) {
     const cookies = request.headers.get('cookie') || null
     const baseUrl = url.origin
 
-    const results = await searchAll(q)
+    // Additional optional filters (accepted but currently delegated to adapters)
+    const type = url.searchParams.get('type') ?? undefined
+    const jurisdiction = url.searchParams.get('jurisdiction') ?? undefined
+    const agency = url.searchParams.get('agency') ?? undefined
+    const from = url.searchParams.get('from') ?? undefined
+    const to = url.searchParams.get('to') ?? undefined
 
-    return NextResponse.json(results)
+    const results = await searchAll(q, { cookies, baseUrl })
+
+    const raw = results?.results ?? (Array.isArray(results) ? results : [])
+    const records = raw.map((r: any, i: number) => normalizeSearchResult(r, i))
+
+    return NextResponse.json({ records, results: raw })
   } catch (err: any) {
     console.error('Proxy search error:', err)
     return NextResponse.json({ error: err?.message || 'search error' }, { status: 500 })
@@ -29,8 +40,10 @@ export async function POST(request: NextRequest) {
     const cookies = request.headers.get('cookie') || null
     const baseUrl = new URL(request.url).origin
 
-    const results = await searchAll(q)
-    return NextResponse.json(results)
+    const results = await searchAll(q, { cookies, baseUrl })
+    const raw = results?.results ?? (Array.isArray(results) ? results : [])
+    const records = raw.map((r: any, i: number) => normalizeSearchResult(r, i))
+    return NextResponse.json({ records, results: raw })
   } catch (err: any) {
     console.error('Proxy search POST error:', err)
     return NextResponse.json({ error: err?.message || 'search error' }, { status: 500 })
