@@ -72,7 +72,7 @@ export default function DatasetPage({ dataset }: DatasetPageProps) {
           <header>
             <h1>{dataset.title}</h1>
             <div className="meta">
-              <span className="agency">Agency: {dataset.agency}</span>
+              <span className="agency">Agency: {typeof dataset.agency === 'string' ? dataset.agency : 'Not specified'}</span>
               {dataset.date && (
                 <span className="date">
                   Last modified: {new Date(dataset.date).toLocaleDateString()}
