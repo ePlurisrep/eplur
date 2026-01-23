@@ -50,15 +50,15 @@ The application should work with Node.js v20 or later.
 Copy the example environment file:
 
 ```bash
-cp .env.example .env.local
+cp .env.local.example .env.local
 ```
 
 Edit `.env.local` with your configuration:
 
 ```env
 # API Keys for Government Data Sources
-GOVINFO_API=your_govinfo_api_key_here
-DATA_GOV_API=your_data_gov_api_key_here
+GOVINFO_API_KEY=your_govinfo_api_key_here
+DATAGOV_API_KEY=your_data_gov_api_key_here
 
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co

@@ -14,7 +14,7 @@ For detailed setup instructions, including GitHub Actions configuration and trou
 npm install
 
 # Copy environment template
-cp .env.example .env.local
+cp .env.local.example .env.local
 
 # Edit .env.local with your API keys and database URLs
 
