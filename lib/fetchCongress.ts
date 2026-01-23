@@ -1,4 +1,7 @@
 import { GOVERNMENT_ENTITIES } from '@/lib/government/entities'
+import executiveNodes from '@/lib/executiveSeed'
+import supremeCourtNodes from '@/lib/judicialSeed'
+import type { GovernmentRelation } from '@/types/government'
 import type { GovernmentNode } from '@/types/government'
 
 const BASE_URL = 'https://api.congress.gov/v3'
@@ -74,5 +77,57 @@ export async function fetchCongressData(): Promise<GovernmentNode[]> {
     return GOVERNMENT_ENTITIES
   }
 
+  // append curated seeds (executive + judicial) ensuring no duplicates
+  const seen = new Set(nodes.map((n) => n.id))
+  for (const s of executiveNodes) {
+    if (!seen.has(s.id)) {
+      nodes.push(s)
+      seen.add(s.id)
+    }
+  }
+  for (const j of supremeCourtNodes) {
+    if (!seen.has(j.id)) {
+      nodes.push(j)
+      seen.add(j.id)
+    }
+  }
+
   return nodes
+}
+
+export async function fetchCongressRelations(): Promise<GovernmentRelation[]> {
+  // derive simple relations from bills (sponsors, referrals)
+  if (!API_KEY) return []
+
+  const relations: GovernmentRelation[] = []
+
+  try {
+    const url = `${BASE_URL}/bill?api_key=${API_KEY}&limit=250`
+    const res = await fetch(url, { next: { revalidate: 86400 } })
+    if (!res.ok) throw new Error(`Congress API error: ${res.status}`)
+    const data = await res.json()
+
+    for (const b of data.bills ?? []) {
+      const billId = `bill-${b.number}-${b.congress}`
+
+      // sponsors
+      for (const s of (b.sponsors || [])) {
+        const memberId = s.bioguideId ? `member-${s.bioguideId}` : s.id ? `member-${s.id}` : null
+        if (memberId) {
+          relations.push({ fromId: billId, toId: memberId, type: 'sponsored_by' })
+        }
+      }
+
+      // referrals -> committees
+      for (const c of (b.committees || [])) {
+        if (c.systemCode) {
+          relations.push({ fromId: billId, toId: `committee-${c.systemCode}`, type: 'referred_to' })
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('fetchCongressRelations: failed to fetch bill relations', e)
+  }
+
+  return relations
 }

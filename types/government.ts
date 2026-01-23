@@ -2,13 +2,18 @@
 export type GovernmentNodeType =
   | 'branch'
   | 'body'
+  | 'department'
+  | 'agency'
+  | 'office'
+  | 'official'
   | 'committee'
   | 'subcommittee'
   | 'member'
   | 'bill'
+  | 'vote'
   | 'userNode'
-  | 'office'
   | 'role'
+  | 'root'
   | 'root'
 
 export interface GovernmentNode {
@@ -55,6 +60,22 @@ export interface GovernmentRelation {
   type: 'serves_on' | 'chairs' | 'member_of' | 'sponsored_by' | 'referred_to'
   startDate?: string
   endDate?: string | null
+}
+
+// Judicial node with appointment metadata
+export interface JudicialNode extends GovernmentNode {
+  appointmentDate?: string
+  appointedBy?: string
+  courtLevel?: 'supreme' | 'appeals' | 'district'
+}
+
+// Vote node represents a single member's vote on a roll call
+export interface VoteNode extends GovernmentNode {
+  type: 'vote'
+  billId: string
+  memberId: string
+  position: 'Yea' | 'Nay' | 'Present' | 'Not Voting'
+  date: string
 }
 
 // User research / workspace nodes (private/shared annotations)
