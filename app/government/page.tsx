@@ -1,3 +1,4 @@
+import React from 'react'
 export const metadata = {
   title: 'Structure of the United States Government — ePluris',
 }

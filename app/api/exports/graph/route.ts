@@ -22,51 +22,37 @@ export async function GET(req: Request) {
     }))
 
     // merge optional user nodes (if Prisma configured)
-    const userNodes = await getUserNodes()
-    const userRelations = await getUserRelations()
-    const query = new URL(req.url).searchParams
-    const requestedUser = query.get('user')
+      // include user nodes ONLY if an Authorization header is present
+      const authHeader = req.headers.get('authorization') || req.headers.get('x-user-id')
+      const includeUser = Boolean(authHeader)
+      const authUser = authHeader ? String(authHeader).replace(/^Bearer\s+/i, '') : null
 
-    const seen = new Set(nodes.map((n) => n.id))
+      const userNodes = includeUser ? await getUserNodes() : []
+      const userRelations = includeUser ? await getUserRelations() : []
 
-    // If a specific user is requested, namespace their nodes and edges.
-    let userNodeIdMap: Record<string, string> = {}
-    if (requestedUser) {
-      const usersNodesForUser = userNodes.filter((u) => (u.sources as any)?.ownerId === requestedUser)
-      for (const u of usersNodesForUser) {
-        if (!seen.has(`user:${requestedUser}:node:${u.id}`)) {
-          const namespaced = `user:${requestedUser}:node:${u.id}`
-          nodes.push({
-            id: namespaced,
-            label: u.name,
-            type: (u.type as unknown as NodeType) || ('user_node' as NodeType),
-            group: (u.type as string) || 'user_node',
-            description: undefined,
-            metadata: u.metadata || {},
-          })
-          seen.add(namespaced)
-          userNodeIdMap[u.id] = namespaced
+      const seen = new Set(nodes.map((n) => n.id))
+
+      // Namespace and insert user nodes for the authenticated user only
+      const userNodeIdMap: Record<string, string> = {}
+      if (includeUser) {
+        for (const u of userNodes) {
+          const owner = (u.sources as any)?.ownerId || authUser || 'unknown'
+          if (authUser && owner !== authUser) continue
+          const namespaced = `user:${owner}:node:${u.id}`
+          if (!seen.has(namespaced)) {
+            nodes.push({
+              id: namespaced,
+              label: u.name,
+              type: (u.type as unknown as NodeType) || ('user_node' as NodeType),
+              group: (u.type as string) || 'user_node',
+              description: undefined,
+              metadata: u.metadata || {},
+            })
+            seen.add(namespaced)
+            userNodeIdMap[u.id] = namespaced
+          }
         }
       }
-    } else {
-      // no user requested: include all user nodes as-is (namespaced by their owner)
-      for (const u of userNodes) {
-        const owner = (u.sources as any)?.ownerId || 'unknown'
-        const namespaced = `user:${owner}:node:${u.id}`
-        if (!seen.has(namespaced)) {
-          nodes.push({
-            id: namespaced,
-            label: u.name,
-            type: (u.type as unknown as NodeType) || ('user_node' as NodeType),
-            group: (u.type as string) || 'user_node',
-            description: undefined,
-            metadata: u.metadata || {},
-          })
-          seen.add(namespaced)
-          userNodeIdMap[u.id] = namespaced
-        }
-      }
-    }
 
     // build edges from both derived relations and persisted user relations
     // parent-child edges (CONTAINS)
@@ -105,16 +91,19 @@ export async function GET(req: Request) {
     }
 
     // Merge user relations, resolving source/target to namespaced IDs when they refer to user nodes.
-    for (const ur of userRelations) {
-      // if user relation belongs to a different user and a specific user was requested, skip
-      if (requestedUser && ur.userId && ur.userId !== requestedUser) continue
+      if (includeUser) {
+        for (const ur of userRelations) {
+          if (ur.userId && authUser && ur.userId !== authUser) continue
+          const resolve = (id: string) => userNodeIdMap[id] ?? id
+          edges.push({ source: resolve(ur.sourceId), target: resolve(ur.targetId), relationship: (ur.relation as RelationshipType) || 'USER_DEFINED', weight: 1, metadata: {} })
+        }
+      }
 
-      const resolve = (id: string) => userNodeIdMap[id] ?? id
+      const metaSources = ['congress.gov', 'seed']
+      if (includeUser) metaSources.push('user')
+      const meta = { generatedAt: new Date().toISOString(), source: metaSources }
 
-      edges.push({ source: resolve(ur.sourceId), target: resolve(ur.targetId), relationship: (ur.relation as RelationshipType) || 'USER_DEFINED', weight: 1, metadata: {} })
-    }
-
-    return NextResponse.json({ nodes, edges }, { headers: { 'Cache-Control': 'public, s-maxage=3600' } })
+    return NextResponse.json({ nodes, edges, meta }, { headers: { 'Cache-Control': 'public, s-maxage=3600' } })
   } catch (e) {
     return NextResponse.json({ error: 'failed to build graph', details: String(e) }, { status: 500 })
   }

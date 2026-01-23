@@ -5,35 +5,78 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  // optional direct URL for session-mode migrations (use 5432)
+  directUrl = env("DIRECT_URL")
+}
+// Canonical graph schema
+model Node {
+  id         String    @id @default(cuid())
+  type       NodeType
+  externalId String?   @unique
+  label      String
+  description String?
+  metadata   Json?
+  isPublic   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  relationsFrom Relation[] @relation("from")
+  relationsTo   Relation[] @relation("to")
 }
 
+enum NodeType {
+  PERSON
+  BILL
+  COMMITTEE
+  AGENCY
+  COURT
+  BRANCH
+  CHAMBER
+  VOTE
+  USER_NODE
+}
+
+model Relation {
+  id        String       @id @default(cuid())
+  fromId    String
+  toId      String
+  type      RelationType
+  weight    Float?
+  metadata  Json?
+  createdAt DateTime     @default(now())
+
+  from Node @relation("from", fields: [fromId], references: [id])
+  to   Node @relation("to", fields: [toId], references: [id])
+}
+
+enum RelationType {
+  MEMBER_OF
+  SPONSORED
+  VOTED_ON
+  VOTED_FOR
+  VOTED_AGAINST
+  PART_OF
+  REPORTS_TO
+  APPOINTED_BY
+}
+
+// Optional user table for overlays and future auth
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  nodes     UserNode[]
-  edges     UserEdge[]
-  createdAt DateTime   @default(now())
+  id        String    @id @default(cuid())
+  email     String?   @unique
+  createdAt DateTime  @default(now())
+
+  overlays UserNode[]
 }
 
+// User overlay nodes augment public Nodes without overwriting
 model UserNode {
-  id        String   @id @default(cuid())
-  userId    String
-  label     String
-  type      String
-  metadata  Json
+  id       String   @id @default(cuid())
+  userId   String
+  nodeId   String
+  tags     String[] @default([])
+  notes    String?
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id])
-}
-
-model UserEdge {
-  id          String   @id @default(cuid())
-  userId      String
-  sourceId    String
-  targetId    String
-  relationship String
-  metadata    Json?
-  createdAt   DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
+  // nodeId is not constrained to allow overlays on external data
 }
