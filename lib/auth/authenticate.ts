@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { PrismaClient } from '@prisma/client'
 import { hashToken, isValidTokenFormat } from './apiTokens'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 interface AuthResult {
   userId: string | null
@@ -39,8 +37,9 @@ export async function authenticate(request: NextRequest): Promise<AuthResult> {
         prisma.apiToken.update({
           where: { id: apiToken.id },
           data: { lastUsedAt: new Date() }
-        }).catch(() => {
-          // Ignore errors updating last used timestamp
+        }).catch((error) => {
+          // Log error but don't fail the request
+          console.error('Failed to update token lastUsedAt:', error)
         })
         
         return { userId: apiToken.userId }

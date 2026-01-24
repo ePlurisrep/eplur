@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { generateApiToken } from '@/lib/auth/apiTokens'
 import { createServerClient } from '@supabase/ssr'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 /**
  * GET /api/user/tokens - List all API tokens for the authenticated user
@@ -106,19 +104,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find or create user in our database
-    let dbUser = await prisma.user.findUnique({
-      where: { email: user.email! }
+    // Find or create user in our database using upsert
+    const dbUser = await prisma.user.upsert({
+      where: { email: user.email! },
+      update: {},
+      create: {
+        email: user.email!,
+        id: user.id
+      }
     })
-
-    if (!dbUser) {
-      dbUser = await prisma.user.create({
-        data: {
-          email: user.email!,
-          id: user.id
-        }
-      })
-    }
 
     // Generate a new token
     const { token, tokenHash } = generateApiToken()
