@@ -53,3 +53,4 @@ The application will be available at http://localhost:3000
 - [README_SUPABASE.md](./README_SUPABASE.md) - Supabase-specific setup
 - [DATA_MODEL.md](./DATA_MODEL.md) - Data model documentation
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) - Design system guidelines
+- [API_TOKENS.md](./API_TOKENS.md) - API access tokens for programmatic access
