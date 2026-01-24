@@ -21,6 +21,9 @@ cp .env.local.example .env.local
 # Run database migrations
 npm run migrate
 
+# Or for Supabase + Prisma specifically
+./scripts/run-supabase-migration.sh
+
 # Or for development with interactive prompts
 npm run migrate:dev
 
@@ -58,3 +61,4 @@ The application will be available at http://localhost:3000
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) - Design system guidelines
 - [API_TOKENS.md](./API_TOKENS.md) - API access tokens for programmatic access
 - [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) - Database migration instructions
+- [SUPABASE_MIGRATION.md](./SUPABASE_MIGRATION.md) - Supabase + Prisma migration guide

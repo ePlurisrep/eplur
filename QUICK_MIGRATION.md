@@ -2,7 +2,14 @@
 
 ## Run the Migration
 
-The simplest way to apply the API token migration:
+### For Supabase + Prisma (Recommended)
+
+```bash
+# Automated script with Supabase-specific guidance
+./scripts/run-supabase-migration.sh
+```
+
+### Generic Prisma Migration
 
 ```bash
 # Make sure .env.local is configured with your database credentials
@@ -21,11 +28,13 @@ npm run migrate:status
 npm run db:studio
 ```
 
-## Alternative: Using Script
+## Supabase-Specific Instructions
 
-```bash
-./scripts/run-migration.sh
-```
+For detailed Supabase + Prisma setup, see:
+- **[SUPABASE_MIGRATION.md](./SUPABASE_MIGRATION.md)** - Complete Supabase guide
+- Includes connection string setup
+- Troubleshooting for Supabase-specific issues
+- Connection pooling configuration
 
 ## What Gets Created
 
