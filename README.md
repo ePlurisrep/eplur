@@ -18,8 +18,11 @@ cp .env.local.example .env.local
 
 # Edit .env.local with your API keys and database URLs
 
-# Run database migrations (if using Prisma)
-npx prisma migrate dev
+# Run database migrations
+npm run migrate
+
+# Or for development with interactive prompts
+npm run migrate:dev
 
 # Start development server
 npm run dev
@@ -54,3 +57,4 @@ The application will be available at http://localhost:3000
 - [DATA_MODEL.md](./DATA_MODEL.md) - Data model documentation
 - [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) - Design system guidelines
 - [API_TOKENS.md](./API_TOKENS.md) - API access tokens for programmatic access
+- [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) - Database migration instructions
