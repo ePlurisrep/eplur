@@ -66,6 +66,7 @@ model User {
   createdAt DateTime  @default(now())
 
   overlays UserNode[]
+  apiTokens ApiToken[]
 }
 
 // User overlay nodes augment public Nodes without overwriting
@@ -79,4 +80,20 @@ model UserNode {
 
   user User @relation(fields: [userId], references: [id])
   // nodeId is not constrained to allow overlays on external data
+}
+
+// API tokens for programmatic access
+model ApiToken {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  tokenHash   String    @unique
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
 }
