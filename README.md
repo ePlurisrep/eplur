@@ -3,40 +3,47 @@ Unified US Gov Data Search
 
 <!-- PHASE 1 IS FEATURE-FROZEN. DO NOT ADD. -->
 
-## Setup
+## Quick Start
 
-### API Keys
+For detailed setup instructions, including GitHub Actions configuration and troubleshooting, see [SETUP.md](./SETUP.md).
 
-This application requires API keys for government data sources. Create a `.env.local` file in the root directory:
+### Installation
 
 ```bash
-# Copy the template
+# Install dependencies
+npm install
+
+# Copy environment template
 cp .env.local.example .env.local
+
+# Edit .env.local with your API keys and database URLs
+
+# Run database migrations
+npm run migrate
+
+# Or for Supabase + Prisma specifically
+./scripts/run-supabase-migration.sh
+
+# Or for development with interactive prompts
+npm run migrate:dev
+
+# Start development server
+npm run dev
 ```
+
+### Required API Keys
 
 Get API keys from:
 
-- **GovInfo API**: Register at https://www.govinfo.gov/developers to get an API key
+- **GovInfo API**: Register at https://www.govinfo.gov/developers
 - **Data.gov API**: Get from https://api.data.gov/signup/
 - **Census API**: No API key required - uses public dataset catalog
 
-### Environment Variables
+### Database Setup
 
-```env
-DATA_GOV_API=your_data_gov_api_key
-GOVINFO_API=your_govinfo_api_key
-CENSUS_API=your_census_api_key
-```
+This project uses Prisma with PostgreSQL (recommended: Supabase). See [SETUP.md](./SETUP.md) for detailed database configuration.
 
-## Next.js Development
-
-This repository now contains a minimal Next.js app scaffold.
-
-Install dependencies:
-
-```bash
-npm install
-```
+## Development
 
 Run development server:
 
@@ -44,4 +51,14 @@ Run development server:
 npm run dev
 ```
 
-The app's entry is in `pages/index.js` and global styles in `styles/globals.css`.
+The application will be available at http://localhost:3000
+
+## Additional Documentation
+
+- [SETUP.md](./SETUP.md) - Comprehensive setup guide with troubleshooting
+- [README_SUPABASE.md](./README_SUPABASE.md) - Supabase-specific setup
+- [DATA_MODEL.md](./DATA_MODEL.md) - Data model documentation
+- [DESIGN_SYSTEM.md](./DESIGN_SYSTEM.md) - Design system guidelines
+- [API_TOKENS.md](./API_TOKENS.md) - API access tokens for programmatic access
+- [MIGRATION_GUIDE.md](./MIGRATION_GUIDE.md) - Database migration instructions
+- [SUPABASE_MIGRATION.md](./SUPABASE_MIGRATION.md) - Supabase + Prisma migration guide

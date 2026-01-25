@@ -9,7 +9,12 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "check-routes": "node ./scripts/check-routes.js"
+    "check-routes": "node ./scripts/check-routes.js",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "migrate:status": "prisma migrate status",
+    "migrate:supabase": "./scripts/run-supabase-migration.sh",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^4.15.0",
