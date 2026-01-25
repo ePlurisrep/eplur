@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
+import { authenticate } from '@/lib/auth/authenticate'
 
 function createSupabaseForRequest(request: NextRequest, supabaseResponseRef: { res: NextResponse }) {
   return createServerClient(
@@ -21,23 +22,31 @@ function createSupabaseForRequest(request: NextRequest, supabaseResponseRef: { r
 }
 
 export async function GET(request: NextRequest) {
-  let supabaseResponse = NextResponse.next()
-  const supabase = createSupabaseForRequest(request, { res: supabaseResponse })
-
-  const { data: userData } = await supabase.auth.getUser()
-  const user = userData?.user
-  if (!user) {
+  // Try Bearer token authentication first, then fall back to Supabase session
+  const auth = await authenticate(request)
+  
+  if (!auth.userId) {
     const unauth = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    for (const cookie of supabaseResponse.cookies.getAll()) {
-      unauth.cookies.set(cookie.name, cookie.value)
+    if (auth.supabaseResponse) {
+      for (const cookie of auth.supabaseResponse.cookies.getAll()) {
+        unauth.cookies.set(cookie.name, cookie.value)
+      }
     }
     return unauth
+  }
+
+  // Use Supabase client if available (from session), otherwise create one with service role
+  let supabase = auth.supabase
+  let supabaseResponse = auth.supabaseResponse || NextResponse.next()
+  
+  if (!supabase) {
+    supabase = createSupabaseForRequest(request, { res: supabaseResponse })
   }
 
   const { data, error } = await supabase
     .from('documents')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', auth.userId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -56,15 +65,15 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  let supabaseResponse = NextResponse.next()
-  const supabase = createSupabaseForRequest(request, { res: supabaseResponse })
-
-  const { data: userData } = await supabase.auth.getUser()
-  const user = userData?.user
-  if (!user) {
+  // Try Bearer token authentication first, then fall back to Supabase session
+  const auth = await authenticate(request)
+  
+  if (!auth.userId) {
     const unauth = NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    for (const cookie of supabaseResponse.cookies.getAll()) {
-      unauth.cookies.set(cookie.name, cookie.value)
+    if (auth.supabaseResponse) {
+      for (const cookie of auth.supabaseResponse.cookies.getAll()) {
+        unauth.cookies.set(cookie.name, cookie.value)
+      }
     }
     return unauth
   }
@@ -73,9 +82,17 @@ export async function POST(request: NextRequest) {
   const source = body.source || 'upload'
   const metadata = body.metadata || {}
 
+  // Use Supabase client if available (from session), otherwise create one with service role
+  let supabase = auth.supabase
+  let supabaseResponse = auth.supabaseResponse || NextResponse.next()
+  
+  if (!supabase) {
+    supabase = createSupabaseForRequest(request, { res: supabaseResponse })
+  }
+
   const { data, error } = await supabase
     .from('documents')
-    .insert([{ user_id: user.id, source, metadata }])
+    .insert([{ user_id: auth.userId, source, metadata }])
     .select()
     .single()
 
