@@ -74,6 +74,7 @@ model User {
   createdAt DateTime  @default(now())
 
   overlays UserNode[]
+  apiTokens ApiToken[]
 }
 
 // User overlay nodes augment public Nodes without overwriting
