@@ -10,10 +10,11 @@ datasource db {
 }
 // Canonical graph schema
 model Node {
-  id         String    @id @default(cuid())
-  type       NodeType
+  id            String   @id @default(uuid()) @db.Uuid
+  nodeType      NodeType
+  name          String
+
   externalId String?   @unique
-  label      String
   description String?
   metadata   Json?
   isPublic   Boolean   @default(true)
@@ -21,6 +22,12 @@ model Node {
 
   relationsFrom Relation[] @relation("from")
   relationsTo   Relation[] @relation("to")
+
+  // Relations for code metadata overlays
+  codeArtifact     CodeArtifact?     @relation("CodeArtifact_entity")
+  codeCapabilities CodeCapability[]  @relation("CodeCapability_entity")
+  codeDependencies CodeDependency[]  @relation("CodeDepSource")
+  codeDependents   CodeDependency[]  @relation("CodeDepTarget")
 }
 
 enum NodeType {
@@ -31,6 +38,7 @@ enum NodeType {
   COURT
   BRANCH
   CHAMBER
+  CODE_ARTIFACT
   VOTE
   USER_NODE
 }
@@ -79,4 +87,48 @@ model UserNode {
 
   user User @relation(fields: [userId], references: [id])
   // nodeId is not constrained to allow overlays on external data
+}
+
+// One-to-one metadata overlay for code artifacts
+model CodeArtifact {
+  entityId     String   @id @db.Uuid @map("entity_id")
+  entity       Node     @relation("CodeArtifact_entity", fields: [entityId], references: [id], onDelete: Cascade)
+  ecosystem    String
+  artifactType String   @map("artifact_type")
+  homepage     String?
+  repoUrl      String?  @map("repo_url")
+  license      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("code_artifacts")
+}
+
+model CodeCapability {
+  id          String   @id @default(uuid()) @db.Uuid
+  entityId    String   @db.Uuid @map("entity_id")
+  entity      Node     @relation("CodeCapability_entity", fields: [entityId], references: [id], onDelete: Cascade)
+  capability  String
+  confidence  Float    @default(1.0)
+  source      String   @default("manual")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("code_capabilities")
+  @@index([capability])
+  @@index([entityId])
+}
+
+model CodeDependency {
+  id                   String   @id @default(uuid()) @db.Uuid
+  entityId             String   @db.Uuid @map("entity_id")
+  dependsOnEntityId    String   @db.Uuid @map("depends_on_entity_id")
+  entity               Node     @relation("CodeDepSource", fields: [entityId], references: [id], onDelete: Cascade)
+  dependsOn            Node     @relation("CodeDepTarget", fields: [dependsOnEntityId], references: [id], onDelete: Cascade)
+  dependencyType       String   @default("runtime") @map("dependency_type")
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("code_dependencies")
+  @@unique([entityId, dependsOnEntityId])
+  @@index([entityId])
+  @@index([dependsOnEntityId])
 }

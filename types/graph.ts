@@ -5,6 +5,7 @@ export type NodeType =
   | 'subcommittee'
   | 'member'
   | 'bill'
+  | 'code_artifact'
   | 'vote'
   | 'agency'
   | 'court'
